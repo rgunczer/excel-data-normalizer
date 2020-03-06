@@ -5,12 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAG Excel Importer</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h1>TAG Excel Importer</h1>
-
-    <input id="files" type="file">
+    <div class="header">
+        <h1>TAG Excel Importer</h1>
+        <input id="files" type="file">
+        <div id="excel-file-stat"></div>
+        <button id="process" name="process">Process</button>
+        <input type="text" id="txtempname">
+        <button id="getEmpId" name="getEmpId">Get EmpId</button>
+    </div>
+    <div id="excel"></div>
+    <script lang="javascript" src="node_modules/xlsx/dist/xlsx.full.min.js"></script>
     <script src="app.js"></script>
 </body>
 
