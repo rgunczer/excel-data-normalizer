@@ -5,21 +5,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAG Excel Importer</title>
+    <script lang="javascript" src="node_modules/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="header">
-        <h1>TAG Excel Importer</h1>
-        <input id="files" type="file">
-        <div id="excel-file-stat"></div>
-        <button id="process" name="process">Process</button>
-        <input type="text" id="txtempname">
-        <button id="getEmpId" name="getEmpId">Get EmpId</button>
+
+    <nav class="navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">TAG Excel Importer</a>
+        <form class="form-inline my-2 my-lg-0">
+            <label class="btn btn-primary mr-sm-2">
+                <input type="file" id="browse-excel-file" />
+                Browse Excel File...
+            </label>
+            <button id="process" type="button" name="process" class="btn btn-primary mr-sm-2">Process</button>
+            <div class="input-group mr-sm-2">
+                <input type="text" id="txtapikey" class="mr-sm-2" placeholder="ApiKey">
+                <input type="text" id="txtempname" class="mr-sm-2" placeholder="Employee Name">
+                <button id="getEmpId" type="button" name="getEmpId" class="btn btn-primary">Get EmpId</button>
+            </div>
+            <button id="btn-export-rules" type="button" name="export-rules" class="btn btn-primary mr-sm-2">Export
+                Rules</button>
+        </form>
+        <span class="navbar-text"></span>
+    </nav>
+
+    <div class="container-fluid px-0">
+        <div id="excel"></div>
     </div>
-    <div id="excel"></div>
-    <script lang="javascript" src="node_modules/xlsx/dist/xlsx.full.min.js"></script>
+
+    <div class="modal fade" id="columnModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="columnModalLabel"></h5>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-5">
+                            <select id="distinct-values-list" class="rule" size="20" multiple></select>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-secondary" id="btn-rule-create-smart"
+                                name="btn-rule-create-smart">Smart</button>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-secondary" id="btn-rule-add-to"
+                                    name="btn-rule-add-to">Add To</button>
+                                <input id="rule-to" type="text">
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-secondary" id="btn-rule-add-from"
+                                    name="btn-rule-add-from">Add From</button>
+                                <select id="rule-from" size="10" multiple></select>
+                            </div>
+                            <div class="form-group">
+                            <button type="button" class="btn btn-secondary" id="btn-rule-create"
+                                name="btn-rule-create">Create Rule</button>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <select id="existing-rules-list" class="rule" size="20"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="close-modal" name="close-modal">Close</button>
+                    <button type="button" class="btn btn-secondary" id="close-modal" name="close-modal-and-re-process">Close And Re-Process</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+
 </body>
 
 </html>

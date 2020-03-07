@@ -12,24 +12,34 @@ body {
     margin-bottom: 20px;
 }
 
-#excel {
-    overflow-x: scroll;
-    height: 650px;
-}
+/* .table-responsive {
+    height: 400px;
+    overflow: scroll;
+} */
 
-table {
-    border-collapse: collapse;
-}
-
-table, th, td {
-    border: 1px solid black;
+thead tr:nth-child(1) th {
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 th {
-    background-color: #808080;
-    color: white;
+    text-align: center;
 }
 
-td {
+select.rule {
+    width: 100%;
+}
+
+#rule-from {
+    width: 100%;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+td, th {
     min-width: 150px;
 }
