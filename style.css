@@ -1,7 +1,7 @@
 body {
     padding: 0;
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
 }
 
 .header {
@@ -32,14 +32,14 @@ select.rule {
     width: 100%;
 }
 
-#rule-from {
-    width: 100%;
-}
-
 input[type="file"] {
     display: none;
 }
 
 td, th {
     min-width: 150px;
+}
+
+i {
+    margin-right: 6px;
 }

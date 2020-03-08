@@ -4,6 +4,8 @@ let tableEl;
 let currentRowIndexToProcess = 0;
 let columnNames = [];
 let columnNameToEdit = null;
+let employeeNamesToGetEmpIds = [];
+let fetchEmpIdIndex = 0;
 
 document.getElementById('browse-excel-file')
     .addEventListener('change', (event) => {
@@ -29,7 +31,7 @@ function readExcel(data) {
     const firstSheet = workbook.SheetNames[0];
     console.log(firstSheet);
 
-    excelRows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet], { header: 1, dateNF: 'dd/mm/yyyy' });
+    excelRows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet], { header: 1, dateNF: 'dd/mm/yyyy', defval: '' });
     console.log(excelRows);
 
     excelRows.forEach(rows => {
@@ -151,8 +153,9 @@ function formatDate(date) {
 }
 
 function getColIndexFromColName(columnName) {
+    const tmp = columnName.toLowerCase();
     for (let i = 0; i < excelRows[0].length; ++i) {
-        if (columnName === excelRows[0][i].toLowerCase()) {
+        if (tmp === excelRows[0][i].toLowerCase()) {
             return i;
         }
     }
@@ -191,7 +194,6 @@ function compare(a, b) {
     }
     return 0;
 }
-
 
 function getDistinctValuesInCol(colValues) {
     const obj = {};
@@ -275,10 +277,7 @@ document.addEventListener('click', event => {
         emptyOptions('existing-rules-list');
 
         if (existingRules) {
-            for (let i = 0; i < existingRules.length; ++i) {
-                const el = existingRules[i];
-                $('#existing-rules-list').append(`<option value="${i}">[${el.from}] -> ${el.to}x</option>`);
-            }
+            fillExistingRulesListWith(existingRules);
         }
 
         $('#columnModal').modal('show');
@@ -286,9 +285,8 @@ document.addEventListener('click', event => {
     }
 
     switch (targetName) {
-        case 'btn-rule-create-smart': {
 
-            // const optionValues = $("#distinct-values-list").text();
+        case 'btn-rule-create-smart': {
             const text = $("#distinct-values-list option:selected").text();
             const optionValues = text.split('[').filter(i => i);
 
@@ -378,15 +376,7 @@ document.addEventListener('click', event => {
             $('#rule-to').val('');
             emptyOptions("rule-from");
 
-            const vals = rules[columnNameToEdit];
-
-            emptyOptions("existing-rules-list");
-
-            let cnt = 0;
-            vals.forEach(el => {
-                $('#existing-rules-list').append(`<option value="${cnt++}">[${el.from}] -> [${el.to}]</option>`);
-            });
-
+            fillExistingRulesListWith(rules[columnNameToEdit]);
 
             console.log(rules[columnNameToEdit]);
         }
@@ -404,8 +394,153 @@ document.addEventListener('click', event => {
             processedRows = [];
             process();
             break;
+
+        case 'btn-rule-delete': {
+            const selectedIndices = $("#existing-rules-list").val();
+            console.log(selectedIndices);
+            for (let i = 0; i < selectedIndices.length; ++i) {
+                selectedIndices[i] = parseInt(selectedIndices[i]);
+            }
+
+            for (let i = rules[columnNameToEdit].length - 1; i > -1; --i) {
+                if (selectedIndices.includes(i)) {
+                    rules[columnNameToEdit].splice(i, 1);
+                }
+            }
+
+            fillExistingRulesListWith(rules[columnNameToEdit]);
+        }
+            break;
+
+        case 'openGetEmpIdModal': {
+            emptyOptions('column-list');
+            for (let i = 0; i < excelRows[0].length; ++i) {
+                const colName = excelRows[0][i];
+                $('#column-list').append(`<option value="${colName}">[${colName}]</option>`);
+            }
+
+            $('#collectEmpIdModal').modal('show');
+        }
+            break;
+
+        case 'close-modal-empid':
+            $('#collectEmpIdModal').modal('hide');
+            break;
+
+        case 'begin-getting-emp-ids':
+            fetchEmpIdIndex = 0;
+            fetchEmpId();
+            break;
+
+        case 'export-to-excel-empids': {
+
+            var wb = XLSX.utils.book_new();
+            wb.Props = {
+                Title: "TAG Excel Importer",
+                Subject: "Employee Ids",
+                Author: "TCS",
+                CreatedDate: new Date()
+            };
+
+            const sheetName = columnNameToEdit.replace('[', '').replace(']', '');
+
+            wb.SheetNames.push(sheetName);
+
+            const tempArr = [{ empid: 'EmployeeId', name: 'Name' }, ...employeeNamesToGetEmpIds];
+
+            // var ws_data = [['hello', 'world']];
+            // var ws_data = [['hello', 'world'], ['hello', 'world']];
+            // var ws_data = [[employeeNamesToGetEmpIds.map(x => [x.name])]];
+            var ws_data = tempArr.map(x => [x.empid, x.name]);
+
+            var ws = XLSX.utils.aoa_to_sheet(ws_data);
+            wb.Sheets[sheetName] = ws;
+
+            var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+
+            saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), `employeeids-in-column-${columnNameToEdit.toLowerCase()}.xlsx`);
+        }
+            break;
     }
 });
+
+function s2ab(s) {
+    var buf = new ArrayBuffer(s.length); //convert s to arrayBuffer
+    var view = new Uint8Array(buf);  //create uint8array as viewer
+    for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF; //convert to octet
+    return buf;
+}
+
+function fetchEmpId() {
+
+    const emp = employeeNamesToGetEmpIds[fetchEmpIdIndex];
+    emp.empid = '[GETTING]';
+
+    fillColumnValues();
+
+    getEmployeeId(emp.name)
+        .then(data => {
+            console.log(data);
+
+            const obj = JSON.parse(data);
+
+            if (obj.users && obj.users[0]) {
+                employeeNamesToGetEmpIds[fetchEmpIdIndex].empid = obj.users[0].employee_id;
+            } else {
+                employeeNamesToGetEmpIds[fetchEmpIdIndex].empid = '???';
+            }
+
+            fillColumnValues();
+
+            fetchEmpIdIndex++;
+            if (fetchEmpIdIndex < employeeNamesToGetEmpIds.length) {
+                fetchEmpId();
+            }
+
+        });
+}
+
+$("#column-list").change(function () {
+    columnNameToEdit = '';
+    $("#column-list option:selected").each(function () {
+        columnNameToEdit += $(this).text();
+    });
+
+    const colIndex = getColIndexFromColName(columnNameToEdit.replace('[', '').replace(']', ''));
+    if (!isNaN(colIndex)) {
+        let columnValues = getColumnValues(colIndex);
+        const distValues = getDistinctValuesInCol(columnValues);
+        columnValues = distValues.map(x => x.value);
+
+        employeeNamesToGetEmpIds.length = 0;
+
+        columnValues.forEach(el => {
+            employeeNamesToGetEmpIds.push({
+                name: el,
+                empid: '-'
+            });
+        });
+        fillColumnValues();
+    }
+});
+
+function fillColumnValues() {
+    emptyOptions('column-values');
+
+    let cnt = 0;
+    employeeNamesToGetEmpIds.forEach(emp => {
+        $('#column-values').append(`<option value="${cnt++}">[${emp.empid}] - [${emp.name}]</option>`);
+    });
+}
+
+function fillExistingRulesListWith(rules) {
+    emptyOptions("existing-rules-list");
+
+    let cnt = 0;
+    rules.forEach(el => {
+        $('#existing-rules-list').append(`<option value="${cnt++}">[${el.from}] -> [${el.to}]</option>`);
+    });
+}
 
 function emptyOptions(elementId) {
     document.getElementById(elementId).options.length = 0;
