@@ -547,28 +547,22 @@ function emptyOptions(elementId) {
 }
 
 function getEmployeeId(employeeName) {
-
     return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', secret.empidurl, true);
 
-        const par = encodeURIComponent(employeeName);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.setRequestHeader('x-api-key', secret.apikey);
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", secret.empidurl, true);
-
-        //Send the proper header information along with the request
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.setRequestHeader("x-api-key", secret.apikey);
-
-        xhr.onreadystatechange = () => { // Call a function when the state changes.
+        xhr.onload = () => {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                // Request finished. Do processing here.
                 resolve(xhr.responseText);
             } else {
-                console.log('todo!?')
+                console.log(xhr.statusText);
             }
         }
-        xhr.send("query=" + par);
-
+        const q = encodeURIComponent(employeeName);
+        xhr.send(`query=${q}`);
     });
 }
 
