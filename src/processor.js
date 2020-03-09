@@ -1,3 +1,5 @@
+'use strict';
+
 function Processor(excelRows, rules) {
 
     const processedRows = [];

@@ -1,3 +1,5 @@
+'use strict';
+
 function formatDate(date) {
     const formatted = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear()
     return formatted;
@@ -43,6 +45,14 @@ function compare(a, b) {
     return 0;
 }
 
+function getColumnNames(rows) {
+    const arr = [];
+    for (let i = 0; i < rows[0].length; ++i) {
+        arr.push(rows[0][i]);
+    }
+    return arr;
+}
+
 function getColumnValues(colIndex, rows) {
     const arr = [];
     for (let i = 1; i < rows.length; ++i) {
@@ -79,11 +89,6 @@ function getDistinctValuesInCol(colValues) {
     return sortable;
 }
 
-function getColIndexFromColName(columnName) {
-    const tmp = columnName.toLowerCase();
-    for (let i = 0; i < excelRows[0].length; ++i) {
-        if (tmp === excelRows[0][i].toLowerCase()) {
-            return i;
-        }
-    }
+function removeFirstLastChar(str) {
+    return str.slice(1, -1);
 }

@@ -1,3 +1,5 @@
+'use strict';
+
 const employeeIdHarvesterModal = (function () {
 
     let columnNameToEdit = null;
@@ -10,7 +12,7 @@ const employeeIdHarvesterModal = (function () {
             columnNameToEdit += $(this).text();
         });
 
-        const colIndex = getColIndexFromColName(columnNameToEdit.replace('[', '').replace(']', ''));
+        const colIndex = columnNames.indexOf(removeFirstLastChar(columnNameToEdit));
         if (!isNaN(colIndex)) {
             let columnValues = getColumnValues(colIndex, processedRows);
             const distValues = getDistinctValuesInCol(columnValues);
@@ -95,7 +97,7 @@ const employeeIdHarvesterModal = (function () {
 
             case 'export-to-excel-empids': {
                 const fileName = `employeeids-in-column-${columnNameToEdit.toLowerCase()}.xlsx`
-                const sheetName = columnNameToEdit.replace('[', '').replace(']', '');
+                const sheetName = removeFirstLastChar(columnNameToEdit);
                 const tempArr = [{ empid: 'EmployeeId', name: 'Name' }, ...employeeNamesToGetEmpIds];
                 const data = tempArr.map(x => [x.empid, x.name]);
 

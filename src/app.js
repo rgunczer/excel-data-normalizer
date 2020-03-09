@@ -1,44 +1,38 @@
-let excelRows;
+'use strict';
+
+let originalRows;
 let processedRows;
 
 let columnNames = [];
 
+let rules = {};
+let secret = {};
+
 document.getElementById('browse-excel-file')
     .addEventListener('change', (event) => {
         const file = event.target.files[0];
-
-        const fileInfoText = `Name: [${file.name}], Size: [${file.size} bytes], last modified: [${file.lastModifiedDate ? file.lastModifiedDate.toLocaleDateString() : 'n/a'}]`;
-
         const reader = new FileReader();
+
         if (reader.readAsBinaryString) {
             reader.onload = (e) => {
-
                 ui.showLoading();
-                excelRows = excel.read(e.target.result);
-                columnNames = getColumnNames(excelRows);
-                preProcessRawExcelData(excelRows);
+                originalRows = excel.read(e.target.result);
+                columnNames = getColumnNames(originalRows);
+                preProcessRawExcelData(originalRows);
                 ui.createTableAndHeaders(columnNames);
             };
             reader.readAsBinaryString(file);
         }
 
-        document.getElementsByClassName('navbar-text')[0].innerHTML = fileInfoText;
+        ui.displayFileInfo(`Name: [${file.name}], Size: [${file.size} bytes], last modified: [${file.lastModifiedDate ? file.lastModifiedDate.toLocaleDateString() : 'n/a'}]`)
 
         $('#browse-excel-file').val('');
 
     }, false);
 
-function getColumnNames(rows) {
-    const arr = [];
-    for (let i = 0; i < rows[0].length; ++i) {
-        arr.push(rows[0][i]);
-    }
-    return arr;
-}
-
 function applyRules() {
     ui.setWorking(true);
-    processor = Processor(excelRows, rules);
+    processor = Processor(originalRows, rules);
 
     processor.run().then(result => {
         processedRows = result;

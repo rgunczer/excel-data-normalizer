@@ -1,3 +1,5 @@
+'use strict';
+
 const excel = (function () {
 
     function read(data) {

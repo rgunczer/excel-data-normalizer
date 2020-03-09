@@ -1,4 +1,10 @@
+'use strict';
+
 const ui = (function () {
+
+    function displayFileInfo(info) {
+        document.getElementsByClassName('navbar-text')[0].innerHTML = info;
+    }
 
     function showLoading() {
         $('#excel').html('<p class="loading"><i class="fas fa-spinner fa-spin"></i>Loading...</p>');
@@ -22,7 +28,7 @@ const ui = (function () {
         tableEl.className = "table table-bordered";
 
         // header
-        tableHeadEl = tableEl.createTHead();
+        const tableHeadEl = tableEl.createTHead();
         tableHeadEl.className = 'thead-light';
 
         const row = tableHeadEl.insertRow(-1);
@@ -47,6 +53,7 @@ const ui = (function () {
     }
 
     return {
+        displayFileInfo,
         showLoading,
         emptyOptions,
         setWorking,

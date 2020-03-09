@@ -1,3 +1,5 @@
+'use strict';
+
 const api = (function () {
 
     function getEmployeeId(employeeName) {
