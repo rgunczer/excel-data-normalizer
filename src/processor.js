@@ -14,16 +14,21 @@ function Processor(excelRows, rules) {
             // console.log(vals);
 
             const cellHeader = document.getElementById('cell-header-id ' + columnNames[i]);
-            if (cellHeader) {
+
+
+            const colButtonsContainer = document.getElementById(`column-head-buttons-${columnNames[i]}`);
+            if (colButtonsContainer) {
+                colButtonsContainer.innerHTML = '';
+
                 const button = document.createElement('button');
                 button.className = 'btn btn-info';
                 button.name = 'btn-col-rule ' + columnNames[i];
                 const t = document.createTextNode(vals.length);
                 button.appendChild(t);
 
-                const br = document.createElement("br");
-                cellHeader.appendChild(br);
-                cellHeader.appendChild(button);
+                // const br = document.createElement("br");
+                // cellHeader.appendChild(br);
+                colButtonsContainer.appendChild(button);
             }
         }
     }
@@ -43,7 +48,7 @@ function Processor(excelRows, rules) {
 
             cellValue = (typeof cellValue === 'undefined') ? '' : cellValue;
 
-            const colName = excelRows[0][i].toLowerCase();
+            const colName = columnNames[i]
             const ruleArr = rules[colName];
 
             if (ruleArr) {
@@ -62,6 +67,9 @@ function Processor(excelRows, rules) {
     }
 
     function run() {
+
+        console.log('processor->run', {excelRows, rules});
+
         return new Promise((resolve, reject) => {
 
             setTimeout(() => {
@@ -73,7 +81,7 @@ function Processor(excelRows, rules) {
                 createStat();
 
                 resolve(processedRows);
-            }, 1000);
+            }, 100);
         });
     }
 

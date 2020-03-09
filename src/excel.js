@@ -20,7 +20,10 @@ const excel = (function () {
                 defval: ''
             }
         );
-        return rows;
+        return {
+            rows,
+            firstSheet
+        };
     }
 
     function write(fileName, sheetName, dataArray) {

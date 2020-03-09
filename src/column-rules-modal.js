@@ -133,7 +133,7 @@ const columnRulesModal = (function () {
         const colIndex = columnNames.indexOf(cellName);
         console.log(colIndex);
 
-        $('#columnModalLabel').text(`Column: [${excelRows[0][colIndex]}]`);
+        $('#columnModalLabel').text(`Column: [${cellName}]`);
 
         const colVals = getColumnValues(colIndex, processedRows);
         console.log(colVals);

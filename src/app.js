@@ -8,6 +8,9 @@ let columnNames = [];
 let rules = {};
 let secret = {};
 
+let excelFileName = '';
+let sheetName = '';
+
 document.getElementById('browse-excel-file')
     .addEventListener('change', (event) => {
         const file = event.target.files[0];
@@ -16,13 +19,17 @@ document.getElementById('browse-excel-file')
         if (reader.readAsBinaryString) {
             reader.onload = (e) => {
                 ui.showLoading();
-                originalRows = excel.read(e.target.result);
+                const obj = excel.read(e.target.result);
+                originalRows = obj.rows;
+                sheetName = obj.firstSheet;
                 columnNames = getColumnNames(originalRows);
                 preProcessRawExcelData(originalRows);
                 ui.createTableAndHeaders(columnNames);
             };
             reader.readAsBinaryString(file);
         }
+
+        excelFileName = file.name;
 
         ui.displayFileInfo(`Name: [${file.name}], Size: [${file.size} bytes], last modified: [${file.lastModifiedDate ? file.lastModifiedDate.toLocaleDateString() : 'n/a'}]`)
 
@@ -32,7 +39,7 @@ document.getElementById('browse-excel-file')
 
 function applyRules() {
     ui.setWorking(true);
-    processor = Processor(originalRows, rules);
+    const processor = Processor(originalRows, rules);
 
     processor.run().then(result => {
         processedRows = result;
@@ -59,6 +66,21 @@ document.addEventListener('click', event => {
                 navigator.clipboard.writeText(json).then(() => {
                     alert('Rules Data is on Clipboard');
                 });
+                break;
+
+            case 'btn-save-excel-file': {
+                const defaultFileName = excelFileName.replace('.xlsx', `-modified.xlsx`);
+                const fileName = prompt('Enter file name', defaultFileName);
+
+                if (fileName !== null) {
+                    const sheetName1 = sheetName;
+                    const tempArr = processedRows;
+                    // const data = tempArr.map(x => [x.empid, x.name]);
+
+                    excel.write(fileName, sheetName1, tempArr);
+                    // console.log({fileName, sheetName1, tempArr});
+                }
+            }
                 break;
 
             case 'process':

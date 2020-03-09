@@ -15,7 +15,7 @@ const ui = (function () {
     }
 
     function setWorking(working) {
-        const icon = document.getElementById('processing-rocket-icon');
+        const icon = document.getElementById('processing-icon');
         if (working) {
             icon.classList.add('fa-spin');
         } else {
@@ -36,13 +36,13 @@ const ui = (function () {
         headerCell.innerHTML = '1.';
         row.appendChild(headerCell);
 
-        for (let i = 0; i < columns.length; ++i) {
+        columns.forEach(col => {
             headerCell = document.createElement('th');
-            headerCell.name = 'cell-header ' + columns[i];
-            headerCell.id = 'cell-header-id ' + columns[i];
-            headerCell.innerHTML = columns[i];
+            headerCell.name = 'cell-header ' + col;
+            headerCell.id = 'cell-header-id ' + col;
+            headerCell.innerHTML = `${col}<div id="column-head-buttons-${col}"></div>`;
             row.appendChild(headerCell);
-        }
+        });
 
         const tbdy = document.createElement('tbody');
         tableEl.appendChild(tbdy);
