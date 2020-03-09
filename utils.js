@@ -14,7 +14,7 @@ function preProcessRawExcelData(xlsRows) {
             }
         }
     });
-    console.log(xlsRows);
+    console.log('preProcessRawExcelData', xlsRows);
 }
 
 function compareOccurence(a, b) {
@@ -43,19 +43,19 @@ function compare(a, b) {
     return 0;
 }
 
-function getColumnValues(colIndex) {
-    const vals = [];
-    for (let i = 1; i < processedRows.length; ++i) {
-        vals.push(processedRows[i][colIndex]);
+function getColumnValues(colIndex, rows) {
+    const arr = [];
+    for (let i = 1; i < rows.length; ++i) {
+        arr.push(rows[i][colIndex]);
     }
-    return vals;
+    return arr;
 }
 
 function getDistinctValuesInCol(colValues) {
     const obj = {};
 
     colValues.forEach(element => {
-        let = el = element;
+        let el = element;
         if (typeof el === 'string' || el instanceof String) {
             el = element.trim();
         }
@@ -68,7 +68,10 @@ function getDistinctValuesInCol(colValues) {
 
     const sortable = [];
     for (let key in obj) {
-        sortable.push({ value: key, occurence: obj[key] });
+        sortable.push({
+            value: key,
+            occurence: obj[key]
+        });
     }
 
     sortable.sort(compare);

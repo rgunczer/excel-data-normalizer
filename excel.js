@@ -1,7 +1,13 @@
 const excel = (function () {
 
     function read(data) {
-        const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
+        const workbook = XLSX.read(
+            data,
+            {
+                type: 'binary',
+                cellDates: true
+            }
+        );
         const firstSheet = workbook.SheetNames[0];
 
         const rows = XLSX.utils.sheet_to_row_object_array(

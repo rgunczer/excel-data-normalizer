@@ -43,3 +43,8 @@ td, th {
 i {
     margin-right: 6px;
 }
+
+.loading {
+    font-size: 2em;
+    text-align: center;
+}

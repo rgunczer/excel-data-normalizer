@@ -5,11 +5,11 @@ function Processor(excelRows, rules) {
 
     function createStat() {
         for (let i = 0; i < columnNames.length; ++i) {
-            const colVals = getColumnValues(i);
+            const colVals = getColumnValues(i, processedRows);
             // console.log(colVals);
 
             const vals = getDistinctValuesInCol(colVals);
-            console.log(vals);
+            // console.log(vals);
 
             const cellHeader = document.getElementById('cell-header-id ' + columnNames[i]);
             if (cellHeader) {
@@ -19,7 +19,7 @@ function Processor(excelRows, rules) {
                 const t = document.createTextNode(vals.length);
                 button.appendChild(t);
 
-                var br = document.createElement("br");
+                const br = document.createElement("br");
                 cellHeader.appendChild(br);
                 cellHeader.appendChild(button);
             }
