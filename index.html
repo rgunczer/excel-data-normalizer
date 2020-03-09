@@ -23,7 +23,10 @@
                 <input type="file" id="browse-excel-file" />
                 <i class="far fa-file-excel"></i>Browse Excel File...
             </label>
-            <button id="process" type="button" name="process" class="btn btn-primary mr-sm-2"><i class="fas fa-rocket"></i>Process</button>
+            <button id="process" type="button" name="process" class="btn btn-primary mr-sm-2">
+                <i id="processing-rocket-icon" class="fas fa-rocket"></i>
+                Process
+            </button>
             <div class="input-group mr-sm-2">
                 <input type="text" id="txtapikey" class="mr-sm-2" placeholder="ApiKey">
                 <input type="text" id="txtempname" class="mr-sm-2" placeholder="Employee Name">
@@ -137,6 +140,11 @@
         </div>
     </div>
 
+    <script src="utils.js"></script>
+    <script src="ui-utils.js"></script>
+    <script src="excel.js"></script>
+    <script src="api.js"></script>
+    <script src="processor.js"></script>
     <script src="app.js"></script>
 
 </body>

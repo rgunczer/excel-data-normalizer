@@ -1,7 +1,7 @@
 let excelRows;
 let processedRows;
 let tableEl;
-let currentRowIndexToProcess = 0;
+
 let columnNames = [];
 let columnNameToEdit = null;
 let employeeNamesToGetEmpIds = [];
@@ -16,7 +16,8 @@ document.getElementById('browse-excel-file')
         const reader = new FileReader();
         if (reader.readAsBinaryString) {
             reader.onload = (e) => {
-                readExcel(e.target.result);
+                excelRows = excel.read(e.target.result);
+                preProcessRawExcelData(excelRows);
                 createTableAndHeaders();
             };
             reader.readAsBinaryString(file);
@@ -24,28 +25,6 @@ document.getElementById('browse-excel-file')
 
         document.getElementsByClassName('navbar-text')[0].innerHTML = fileInfoText;
     }, false);
-
-function readExcel(data) {
-    const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
-
-    const firstSheet = workbook.SheetNames[0];
-    console.log(firstSheet);
-
-    excelRows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet], { header: 1, dateNF: 'dd/mm/yyyy', defval: '' });
-    console.log(excelRows);
-
-    excelRows.forEach(rows => {
-        for (let i = 0; i < rows.length; ++i) {
-            if (typeof rows[i] === 'string' || rows[i] instanceof String) {
-                rows[i] = rows[i].trim();
-            }
-            if (typeof rows[i] === 'undefined') {
-                rows[i] = '';
-            }
-        }
-    });
-    console.log(excelRows);
-}
 
 function createTableAndHeaders() {
     tableEl = document.createElement('table');
@@ -77,147 +56,6 @@ function createTableAndHeaders() {
     const excelEl = document.getElementById("excel");
     excelEl.innerHTML = '';
     excelEl.appendChild(tableEl);
-}
-
-function processRow(rowIndex, cells) {
-    const arr = [];
-    processedRows.push(arr);
-
-    const tableBody = document.getElementsByTagName('table')[0].getElementsByTagName('tbody')[0];
-    const row = tableBody.insertRow(-1);
-
-    let cell = row.insertCell(-1);
-    cell.innerHTML = `${rowIndex + 1}.`;
-
-    for (let i = 0; i < cells.length; ++i) {
-        cell = row.insertCell(-1);
-        let cellValue = (cells[i] instanceof Date) ? formatDate(cells[i]) : cells[i];
-
-        cellValue = (typeof cellValue === 'undefined') ? '' : cellValue;
-
-        const colName = excelRows[0][i].toLowerCase();
-        const ruleArr = rules[colName];
-
-        if (ruleArr) {
-            for (let ii = 0; ii < ruleArr.length; ++ii) {
-                const rule = ruleArr[ii];
-                if (rule.from.includes(cellValue)) {
-                    cellValue = rule.to;
-                    break;
-                }
-            }
-        }
-
-        arr.push(cellValue);
-        cell.innerHTML = cellValue;
-    }
-}
-
-function process() {
-    ++currentRowIndexToProcess;
-
-    if (currentRowIndexToProcess < excelRows.length) {
-        processRow(currentRowIndexToProcess, excelRows[currentRowIndexToProcess]);
-        process();
-    } else {
-        createStat();
-    }
-}
-
-function createStat() {
-    for (let i = 0; i < columnNames.length; ++i) {
-        const colVals = getColumnValues(i);
-        // console.log(colVals);
-
-        const vals = getDistinctValuesInCol(colVals);
-        console.log(vals);
-
-        const cellHeader = document.getElementById('cell-header-id ' + columnNames[i]);
-        if (cellHeader) {
-            const button = document.createElement('button');
-            button.className = 'btn btn-info';
-            button.name = 'btn-col-rule ' + columnNames[i];
-            const t = document.createTextNode(vals.length);
-            button.appendChild(t);
-
-            var br = document.createElement("br");
-            cellHeader.appendChild(br);
-            cellHeader.appendChild(button);
-        }
-    }
-}
-
-function formatDate(date) {
-    const formatted = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear()
-    return formatted;
-}
-
-function getColIndexFromColName(columnName) {
-    const tmp = columnName.toLowerCase();
-    for (let i = 0; i < excelRows[0].length; ++i) {
-        if (tmp === excelRows[0][i].toLowerCase()) {
-            return i;
-        }
-    }
-}
-
-function getColumnValues(colIndex) {
-    const vals = [];
-    for (let i = 1; i < processedRows.length; ++i) {
-        vals.push(processedRows[i][colIndex]);
-    }
-    return vals;
-}
-
-function compareOccurence(a, b) {
-    const aValue = a.occurence;
-    const bValue = b.occurence;
-
-    if (aValue < bValue) {
-        return -1;
-    }
-    if (aValue > bValue) {
-        return 1;
-    }
-    return 0;
-}
-
-function compare(a, b) {
-    const aValue = a.value.toLowerCase();
-    const bValue = b.value.toLowerCase();
-
-    if (aValue < bValue) {
-        return -1;
-    }
-    if (aValue > bValue) {
-        return 1;
-    }
-    return 0;
-}
-
-function getDistinctValuesInCol(colValues) {
-    const obj = {};
-
-    colValues.forEach(element => {
-        let = el = element;
-        if (typeof el === 'string' || el instanceof String) {
-            el = element.trim();
-        }
-        if (obj.hasOwnProperty(el)) {
-            obj[el] = obj[el] + 1
-        } else {
-            obj[el] = 1;
-        }
-    });
-
-    const sortable = [];
-    for (let key in obj) {
-        sortable.push({ value: key, occurence: obj[key] });
-    }
-
-    sortable.sort(compare);
-
-    return sortable;
 }
 
 document.addEventListener('click', event => {
@@ -322,10 +160,17 @@ document.addEventListener('click', event => {
             });
             break;
 
-        case 'process':
-            currentRowIndexToProcess = 0;
-            processedRows = [];
-            process();
+        case 'process': {
+            const icon = document.getElementById('processing-rocket-icon');
+            icon.classList.add('fa-spin');
+
+            processor = Processor(excelRows, rules);
+
+            processor.run().then(result => {
+                processedRows = result;
+                icon.classList.remove('fa-spin');
+            });
+        }
             break;
 
         case 'getEmpId':
@@ -433,72 +278,16 @@ document.addEventListener('click', event => {
             break;
 
         case 'export-to-excel-empids': {
-
-            var wb = XLSX.utils.book_new();
-            wb.Props = {
-                Title: "TAG Excel Importer",
-                Subject: "Employee Ids",
-                Author: "TCS",
-                CreatedDate: new Date()
-            };
-
+            const fileName = `employeeids-in-column-${columnNameToEdit.toLowerCase()}.xlsx`
             const sheetName = columnNameToEdit.replace('[', '').replace(']', '');
-
-            wb.SheetNames.push(sheetName);
-
             const tempArr = [{ empid: 'EmployeeId', name: 'Name' }, ...employeeNamesToGetEmpIds];
+            const data = tempArr.map(x => [x.empid, x.name]);
 
-            // var ws_data = [['hello', 'world']];
-            // var ws_data = [['hello', 'world'], ['hello', 'world']];
-            // var ws_data = [[employeeNamesToGetEmpIds.map(x => [x.name])]];
-            var ws_data = tempArr.map(x => [x.empid, x.name]);
-
-            var ws = XLSX.utils.aoa_to_sheet(ws_data);
-            wb.Sheets[sheetName] = ws;
-
-            var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
-
-            saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), `employeeids-in-column-${columnNameToEdit.toLowerCase()}.xlsx`);
+            excel.save(fileName, sheetName, data);
         }
             break;
     }
 });
-
-function s2ab(s) {
-    var buf = new ArrayBuffer(s.length); //convert s to arrayBuffer
-    var view = new Uint8Array(buf);  //create uint8array as viewer
-    for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF; //convert to octet
-    return buf;
-}
-
-function fetchEmpId() {
-
-    const emp = employeeNamesToGetEmpIds[fetchEmpIdIndex];
-    emp.empid = '[GETTING]';
-
-    fillColumnValues();
-
-    getEmployeeId(emp.name)
-        .then(data => {
-            console.log(data);
-
-            const obj = JSON.parse(data);
-
-            if (obj.users && obj.users[0]) {
-                employeeNamesToGetEmpIds[fetchEmpIdIndex].empid = obj.users[0].employee_id;
-            } else {
-                employeeNamesToGetEmpIds[fetchEmpIdIndex].empid = '???';
-            }
-
-            fillColumnValues();
-
-            fetchEmpIdIndex++;
-            if (fetchEmpIdIndex < employeeNamesToGetEmpIds.length) {
-                fetchEmpId();
-            }
-
-        });
-}
 
 $("#column-list").change(function () {
     columnNameToEdit = '';
@@ -542,33 +331,37 @@ function fillExistingRulesListWith(rules) {
     });
 }
 
-function emptyOptions(elementId) {
-    document.getElementById(elementId).options.length = 0;
-}
 
-function getEmployeeId(employeeName) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', secret.empidurl, true);
+function fetchEmpId() {
 
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.setRequestHeader('x-api-key', secret.apikey);
+    const emp = employeeNamesToGetEmpIds[fetchEmpIdIndex];
+    emp.empid = '[GETTING]';
 
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                resolve(xhr.responseText);
+    fillColumnValues();
+
+    getEmployeeId(emp.name)
+        .then(data => {
+            console.log(data);
+
+            const obj = JSON.parse(data);
+
+            if (obj.users && obj.users[0]) {
+                employeeNamesToGetEmpIds[fetchEmpIdIndex].empid = obj.users[0].employee_id;
             } else {
-                console.log(xhr.statusText);
+                employeeNamesToGetEmpIds[fetchEmpIdIndex].empid = '???';
             }
-        }
-        const q = encodeURIComponent(employeeName);
-        xhr.send(`query=${q}`);
-    });
+
+            fillColumnValues();
+
+            fetchEmpIdIndex++;
+            if (fetchEmpIdIndex < employeeNamesToGetEmpIds.length) {
+                fetchEmpId();
+            }
+
+        });
 }
 
-Promise.all(['data/rules.json', 'data/secret.json'].map(url => fetch(url)))
-    .then(resp => Promise.all(resp.map(r => r.json())))
-    .then(data => {
-        rules = data[0];
-        secret = data[1];
-    });
+api.load(arr => {
+    rules = arr[0];
+    secret = arr[1];
+});
