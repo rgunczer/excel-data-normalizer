@@ -46,7 +46,7 @@ const employeeIdHarvesterModal = (function () {
 
         fillColumnValues();
 
-        getEmployeeId(emp.name)
+        api.getEmployeeId(emp.name)
             .then(data => {
                 console.log(data);
 
@@ -72,10 +72,11 @@ const employeeIdHarvesterModal = (function () {
         switch (targetName) {
             case 'openGetEmpIdModal': {
                 ui.emptyOptions('column-list');
-                for (let i = 0; i < excelRows[0].length; ++i) {
-                    const colName = excelRows[0][i];
+                columnNames.forEach(colName => {
                     $('#column-list').append(`<option value="${colName}">[${colName}]</option>`);
-                }
+                })
+
+                $('#txt-api-key').val(secret.apikey);
 
                 $('#collectEmpIdModal').modal('show');
             }
@@ -87,11 +88,12 @@ const employeeIdHarvesterModal = (function () {
 
             case 'begin-getting-emp-ids':
                 fetchEmpIdIndex = 0;
+                secret.apikey = $('#txt-api-key').val();
                 fetchEmpId();
                 break;
 
             case 'getEmpId':
-                getEmployeeId(document.getElementById('txtempname').value)
+                api.getEmployeeId(document.getElementById('txtempname').value)
                     .then(data => console.log(data));
                 break;
 

@@ -23,7 +23,7 @@ function Processor(excelRows, rules) {
                 const button = document.createElement('button');
                 button.className = 'btn btn-info';
                 button.name = 'btn-col-rule ' + columnNames[i];
-                const t = document.createTextNode(vals.length);
+                const t = document.createTextNode(`${vals.length} / ${rules[columnNames[i]] ? rules[columnNames[i]].length : 0}`);
                 button.appendChild(t);
 
                 // const br = document.createElement("br");
@@ -74,7 +74,7 @@ function Processor(excelRows, rules) {
 
             setTimeout(() => {
 
-                for (let i = 0; i < excelRows.length; ++i) {
+                for (let i = 1; i < excelRows.length; ++i) {
                     processRow(i, excelRows[i]);
                 }
 
