@@ -93,4 +93,10 @@ document.addEventListener('click', event => {
 api.load(arr => {
     rules = arr[0];
     secret = arr[1];
+
+    const savedRules = localStorage.getItem('rules');
+    console.log('saved rules: ', savedRules);
+    if (savedRules) {
+        rules = JSON.parse(savedRules);
+    }
 });

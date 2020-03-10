@@ -67,6 +67,7 @@ function Processor(excelRows, rules) {
     }
 
     function run() {
+        localStorage.setItem('rules', JSON.stringify(rules));
 
         console.log('processor->run', {excelRows, rules});
 
