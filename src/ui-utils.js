@@ -34,6 +34,7 @@ const ui = (function () {
         const row = tableHeadEl.insertRow(-1);
         let headerCell = document.createElement('th');
         headerCell.innerHTML = '1.';
+        headerCell.style.textAlign = 'left';
         row.appendChild(headerCell);
 
         columns.forEach(col => {
