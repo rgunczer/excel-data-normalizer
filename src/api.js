@@ -22,19 +22,22 @@ const api = (function () {
         });
     }
 
-    function load(callback) {
-        const urls = [
-            'data/rules.json',
-            'data/secret.json'
-        ];
+    function loadJson(urls, callback) {
         Promise.all(urls.map(url => fetch(url)))
             .then(responses => Promise.all(responses.map(response => response.json())))
             .then(jsonArray => callback(jsonArray));
     }
 
+    function loadText(urls, callback) {
+        Promise.all(urls.map(url => fetch(url)))
+            .then(responses => Promise.all(responses.map(response => response.text())))
+            .then(jsonArray => callback(jsonArray));
+    }
+
     return {
         getEmployeeId,
-        load
+        loadJson,
+        loadText
     };
 
 })();

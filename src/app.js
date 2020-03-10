@@ -61,11 +61,20 @@ document.addEventListener('click', event => {
         employeeIdHarvesterModal.handle(targetName);
 
         switch (targetName) {
-            case 'export-rules':
+            case 'btn-export-rules': {
                 const json = JSON.stringify(rules, null, 2);
                 navigator.clipboard.writeText(json).then(() => {
                     alert('Rules Data is on Clipboard');
                 });
+            }
+                break;
+
+            case 'btn-export-mappings': {
+                const json = JSON.stringify(dbMapping, null, 2);
+                navigator.clipboard.writeText(json).then(() => {
+                    alert('Mapping Data is on Clipboard');
+                });
+            }
                 break;
 
             case 'btn-save-excel-file': {
@@ -90,13 +99,27 @@ document.addEventListener('click', event => {
     }
 });
 
-api.load(arr => {
-    rules = arr[0];
-    secret = arr[1];
+(function () {
 
-    const savedRules = localStorage.getItem('rules');
-    console.log('saved rules: ', savedRules);
-    if (savedRules) {
-        rules = JSON.parse(savedRules);
-    }
-});
+    const files = [
+        'rules.json',
+        'secret.json',
+        'db.json'
+    ];
+
+    api.loadJson(
+        files.map(x => `data/${x}`),
+        arr => {
+            rules = arr[0];
+            secret = arr[1];
+
+            const savedRules = localStorage.getItem('rules');
+            console.log('saved rules: ', savedRules);
+            if (savedRules) {
+                rules = JSON.parse(savedRules);
+            }
+
+            db.load(arr[2]);
+        });
+
+})();

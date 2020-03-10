@@ -32,8 +32,11 @@
                     <i class="fas fa-id-card"></i>Fetch Employee Ids
                 </button>
             </div>
-            <button id="btn-export-rules" type="button" name="export-rules" class="btn btn-primary mr-sm-2">
+            <button id="btn-export-rules" type="button" name="btn-export-rules" class="btn btn-primary mr-sm-2">
                 <i class="fas fa-share"></i>Export Rules
+            </button>
+            <button id="btn-export-mappings" type="button" name="btn-export-mappings" class="btn btn-primary mr-sm-2">
+                <i class="fas fa-share"></i>Export Mappings
             </button>
             <button id="btn-save-excel-file" type="button" name="btn-save-excel-file" class="btn btn-primary mr-sm-2">
                 <i class="fas fa-file-download"></i>Save Excel File...
@@ -47,30 +50,76 @@
     </div>
 
     <div class="modal fade" id="columnModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-xl" style="min-width: 90%;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="columnModalLabel"></h5>
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-5">
+                        <div class="col-3">
+                            <div class="form-row">
+                                <div class="col-md-4">
+                                    <label for="db-table-values-list">DB Table Values</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <select id="db-table-list" class="form-control form-control-sm"></select>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" id="set-excel-to-db-table-mapping" name="set-excel-to-db-table-mapping" class="btn btn-info btn-sm">
+                                        Set
+                                    </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-info btn-sm" data-toggle="collapse" data-target="#collapseVisibleFields">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="collapse" id="collapseVisibleFields">
+                                </div>
+                                <select id="db-table-values-list" class="form-control rule" size="20" multiple></select>
+                            </div>
+                        </div>
+                        <div class="col-1">
+                            <div class="form-group" style="text-align: center;">
+                                <label>DB Mapping</label>
+                                <div class="form-group" style="text-align: center;">
+                                    <select id="db-columns-list" class="form-control rule"></select>
+                                </div>
+                                <button id="btn-mapping-smart" name="btn-mapping-smart" class="btn btn-info btn-sm">
+                                    <i class="fas fa-bolt"></i>Smart
+                                </button>
+                            </div>
+                            <div class="form-group" style="text-align: center;">
+                                <button id="btn-mapping-add" name="btn-mapping-add" class="btn btn-info btn-sm">
+                                    <i class="fas fa-plus"></i>Add
+                                </button>
+                            </div>
+                            <div class="form-group" style="text-align: center;">
+                                <button id="btn-mapping-delete" name="btn-mapping-delete" class="btn btn-info btn-sm">
+                                    <i class="fas fa-trash-alt"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-4">
                             <div class="form-group">
                                 <label for="distinct-values-list">Distinct Values</label>
                                 <select id="distinct-values-list" class="form-control rule" size="20" multiple></select>
                             </div>
                         </div>
-                        <div class="col-2">
+                        <div class="col-1">
                             <form>
                                 <div class="form-group">
                                     <label>Rule</label>
                                     <div class="form-group">
-                                        <button type="button" class="btn btn-light btn-sm" id="btn-rule-create-smart" name="btn-rule-create-smart">
+                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-create-smart" name="btn-rule-create-smart">
                                             <i class="fas fa-bolt"></i>Smart
                                         </button>
                                     </div>
                                     <div class="form-group">
-                                        <button type="button" class="btn btn-light btn-sm" id="btn-rule-add-from" name="btn-rule-add-from">
+                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-from" name="btn-rule-add-from">
                                             <i class="fas fa-plus"></i>Add From
                                         </button>
                                     </div>
@@ -78,7 +127,7 @@
                                         <select id="rule-from" size="10" class="form-control" multiple></select>
                                     </div>
                                     <div class="form-group">
-                                        <button type="button" class="btn btn-light btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
+                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
                                             <i class="fas fa-plus"></i>Add To
                                         </button>
                                     </div>
@@ -86,18 +135,18 @@
                                         <input id="rule-to" class="form-control" type="text">
                                     </div>
                                     <div class="form-group">
-                                        <button type="button" class="btn btn-light btn-sm" id="btn-rule-create" name="btn-rule-create">
+                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-create" name="btn-rule-create">
                                             <i class="fas fa-gavel"></i>Create Rule
                                         </button>
                                     </div>
                                 </div>
                             </form>
                         </div>
-                        <div class="col-5">
+                        <div class="col-3">
                             <div class="form-group">
                                 <label for="existing-rules-list">Existing Rules</label>
                                 <select id="existing-rules-list" class="form-control rule" size="20" multiple></select>
-                                <button type="button" class="btn btn-light btn-sm" id="btn-rule-delete" name="btn-rule-delete">
+                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete" name="btn-rule-delete" style="margin-top: 6px;">
                                     <i class="fas fa-trash-alt"></i>Delete Selected Rules
                                 </button>
                             </div>
@@ -154,6 +203,8 @@
     <script src="src/ui-utils.js"></script>
     <script src="src/excel.js"></script>
     <script src="src/api.js"></script>
+    <script src="src/db.js"></script>
+    <script src="src/db-mapping.js"></script>
     <script src="src/processor.js"></script>
     <script src="src/column-rules-modal.js"></script>
     <script src="src/employee-id-harvester-modal.js"></script>

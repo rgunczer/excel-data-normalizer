@@ -3,6 +3,7 @@
 const columnRulesModal = (function () {
 
     let columnNameToEdit = null;
+    let selectedDbTable = '';
 
     function fillExistingRulesListWith(rules) {
         ui.emptyOptions("existing-rules-list");
@@ -10,6 +11,24 @@ const columnRulesModal = (function () {
         let cnt = 0;
         rules.forEach(el => {
             $('#existing-rules-list').append(`<option value="${cnt++}">[${el.from}] -> [${el.to}]</option>`);
+        });
+    }
+
+    function fillDbTablesList(dbTableNames) {
+        ui.emptyOptions('db-table-list');
+
+        dbTableNames.forEach(tableName => {
+            $('#db-table-list').append(`<option value="${tableName}">[${tableName}]</option>`);
+        });
+    }
+
+    function fillDbTableValuesList(values) {
+        ui.emptyOptions('db-table-values-list');
+
+        let index = 0;
+        values.forEach(val => {
+            // const v = val.replace(/,/g, ' - ');
+            $('#db-table-values-list').append(`<option value="${index++}">[${JSON.stringify(val)}]</option>`);
         });
     }
 
@@ -42,7 +61,6 @@ const columnRulesModal = (function () {
                     const el = array[i].key;
                     $('#rule-from').append(`<option value="${el}">${el}</option>`);
                 }
-
             }
                 break;
 
@@ -111,6 +129,10 @@ const columnRulesModal = (function () {
             }
                 break;
 
+            case 'set-excel-to-db-table-mapping':
+                dbMapping.createExcelColumnToDbTable(columnNameToEdit, selectedDbTable);
+                break;
+
 
             case 'close-modal':
                 columnNameToEdit = null;
@@ -122,37 +144,100 @@ const columnRulesModal = (function () {
                 $('#columnModal').modal('hide');
                 applyRules();
                 break;
+
+            case 'btn-mapping-add': {
+                const arrExcel = $("#distinct-values-list").val();
+                const dbRowIndex = $("#db-table-values-list").val();
+
+                const rows = db.getRowsForTable(selectedDbTable);
+
+                const excel = arrExcel[0];
+                const dbRow = rows[dbRowIndex];
+
+                console.log({ excel, dbRow });
+
+                dbMapping.createExcelValueToDbValue(columnNameToEdit, excel, dbRow);
+
+
+                renderDistinctValues();
+            }
+                break;
+
+            case 'btn-mapping-delete': {
+                const arrExcel = $("#distinct-values-list").val();
+
+                arrExcel.forEach(x => {
+                    dbMapping.deleteMapping(columnNameToEdit, x);
+                });
+
+                renderDistinctValues();
+            }
+                break;
+
+            case 'btn-mapping-smart': {
+
+                const colIndex = columnNames.indexOf(columnNameToEdit);
+                const colVals = getColumnValues(colIndex, processedRows);
+                const vals = getDistinctValuesInCol(colVals);
+
+                vals.forEach(el => {
+                    const excel = el.value;
+                    const dbRow = getDbRowFor(excel);
+
+                    if (dbRow) {
+                        dbMapping.createExcelValueToDbValue(columnNameToEdit, excel, dbRow);
+                    }
+                });
+
+                renderDistinctValues();
+            }
+                break;
         }
     }
 
-    function show(targetName) {
-        const cellName = targetName.replace('btn-col-rule ', '');
+    function getDbRowFor(excel) {
+        const fieldName =  $('#db-columns-list').val(); // 'CHANNEL_NAME';
+        console.log(fieldName);
+        const dbTableRows = db.getRowsForTable(selectedDbTable);
+        for (let i = 0; i < dbTableRows.length; ++i) {
+            const row = dbTableRows[i];
+            let filedValue = row[fieldName];
+            if (filedValue) {
+                if (filedValue.startsWith('"')) {
+                    filedValue = removeFirstLastChar(filedValue);
+                }
+                if (filedValue === excel) {
+                    return row;
+                }
+            }
+        }
+        return null;
+    }
 
-        columnNameToEdit = cellName;
-
-        const colIndex = columnNames.indexOf(cellName);
-        console.log(colIndex);
-
-        $('#columnModalLabel').text(`Rules For Column: [${cellName}]`);
-
-        const colVals = getColumnValues(colIndex, processedRows);
-        console.log(colVals);
-
-        const vals = getDistinctValuesInCol(colVals);
-        console.log(vals);
-
+    function renderDistinctValues() {
         ui.emptyOptions('distinct-values-list');
 
-        vals.forEach(el => {
-            $('#distinct-values-list').append(`<option value="${el.value}">[${el.value}] - ${el.occurence}x</option>`);
-        });
+        const colIndex = columnNames.indexOf(columnNameToEdit);
+        const colVals = getColumnValues(colIndex, processedRows);
+        const vals = getDistinctValuesInCol(colVals);
 
+        vals.forEach(el => {
+            $('#distinct-values-list').append(`<option value="${el.value}">[${el.value}] - ${el.occurence}x - ${dbMapping.lookupMapping(columnNameToEdit, el.value)}</option>`);
+        });
+    }
+
+    function show(targetName) {
+        columnNameToEdit = targetName.replace('btn-col-rule ', '');
+
+        $('#columnModalLabel').text(`Rules For Column: [${columnNameToEdit}]`);
+
+        renderDistinctValues();
 
         ui.emptyOptions('rule-from');
 
         $('#rule-to').val('');
 
-        const existingRules = rules[cellName];
+        const existingRules = rules[columnNameToEdit];
 
         ui.emptyOptions('existing-rules-list');
 
@@ -160,8 +245,57 @@ const columnRulesModal = (function () {
             fillExistingRulesListWith(existingRules);
         }
 
+        fillDbTablesList(db.tables.map(x => x.name));
+        ui.emptyOptions('db-table-values-list');
+
+        selectedDbTable = dbMapping.getDbTableNameForExcelColumn(columnNameToEdit);
+        $("#db-table-list").val(selectedDbTable).change();
+
+        showTableFields();
+
         $('#columnModal').modal('show');
     }
+
+    function showTableFields() {
+        const rows = db.getRowsForTable(selectedDbTable);
+        if (rows && rows.length > 0) {
+            const html = Object.keys(rows[0]).map(x => getCbHtml(x)).join('');
+            $('#collapseVisibleFields').html(html);
+
+            ui.emptyOptions('db-columns-list');
+
+            Object.keys(rows[0]).forEach(el => {
+                $('#db-columns-list').append(`<option value="${el}">[${el}]</option>`);
+            });
+        }
+
+    }
+
+    function getCbHtml(colName) {
+        const html = `
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="${colName}">
+            <label class="form-check-label" for="${colName}">
+                ${colName}
+            </label>
+        </div>`;
+
+        return html;
+    }
+
+    $('#db-table-list').change(() => {
+        let val = '';
+        $("#db-table-list option:selected").each(function () {
+            val += $(this).text();
+        });
+
+        selectedDbTable = val;
+
+        console.log(selectedDbTable);
+        const dbTableRows = db.getRowsForTable(selectedDbTable);
+        fillDbTableValuesList(dbTableRows);
+        showTableFields();
+    });
 
     return {
         handle,
