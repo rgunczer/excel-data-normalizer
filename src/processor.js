@@ -74,7 +74,7 @@ function Processor(excelRows, rules) {
                 createColumnStatButtons();
 
                 resolve(processedRows);
-            }, 10);
+            }, 100);
         });
     }
 

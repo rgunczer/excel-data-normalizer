@@ -118,6 +118,10 @@ const columnRulesModal = (function () {
                 setModalTitle();
                 break;
 
+            case 'del-excel-to-db-table-mapping':
+                // todo: delete entire mapping entry
+                break;
+
             case 'close-modal':
                 columnName = null;
                 $('#columnModal').modal('hide');
@@ -159,6 +163,9 @@ const columnRulesModal = (function () {
                 break;
 
             case 'btn-mapping-smart': {
+                if (!selectedDbTable) {
+                    alert('No DB Table Name Set')
+                }
                 const distinctValues = getDistinctValuesInColumn(columnName, columnNames, processedRows);
                 distinctValues.forEach(el => {
                     const excel = el.value;

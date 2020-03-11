@@ -59,21 +59,24 @@
                     <div class="row">
                         <div class="col-3">
                             <div class="form-row">
-                                <div class="col-md-4">
-                                    <label for="db-table-values-list">DB Table Values</label>
+                                <div class="col-md-3">
+                                    <label for="db-table-values-list">DB Table</label>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-5">
                                     <select id="db-table-list" class="form-control form-control-sm"></select>
                                 </div>
-                                <div class="col-md-1">
-                                    <button type="button" id="set-excel-to-db-table-mapping" name="set-excel-to-db-table-mapping" class="btn btn-info btn-sm">
-                                        Set
-                                    </button>
-                                </div>
-                                <div class="col-md-1">
-                                    <button class="btn btn-info btn-sm" data-toggle="collapse" data-target="#collapseVisibleFields">
-                                        <i class="fas fa-filter"></i>
-                                    </button>
+                                <div class="col-md-3">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" id="set-excel-to-db-table-mapping" name="set-excel-to-db-table-mapping" class="btn btn-info btn-sm">
+                                            Set
+                                        </button>
+                                        <button type="button" id="del-excel-to-db-table-mapping" name="del-excel-to-db-table-mapping" class="btn btn-info btn-sm">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                        <button class="btn btn-info btn-sm" data-toggle="collapse" data-target="#collapseVisibleFields">
+                                            <i class="fas fa-filter"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group">
