@@ -2,16 +2,20 @@
 
 const columnRulesModal = (function () {
 
-    let columnNameToEdit = null;
+    let columnNames = [];
+    let columnName = null;
     let selectedDbTable = '';
 
-    function fillExistingRulesListWith(rules) {
+    function fillExistingRules() {
         ui.emptyOptions("existing-rules-list");
 
-        let cnt = 0;
-        rules.forEach(el => {
-            $('#existing-rules-list').append(`<option value="${cnt++}">[${el.from}] -> [${el.to}]</option>`);
-        });
+        const existingRules = normalization.getRulesForColumn(columnName);
+        if (existingRules) {
+            let cnt = 0;
+            existingRules.forEach(el => {
+                $('#existing-rules-list').append(`<option value="${cnt++}">[${el.from}] -> [${el.to}]</option>`);
+            });
+        }
     }
 
     function fillDbTablesList(dbTableNames) {
@@ -65,82 +69,62 @@ const columnRulesModal = (function () {
                 break;
 
             case 'btn-rule-add-from': {
-                console.log('rule add from');
                 const selections = $("#distinct-values-list").val();
+                ui.fillSelectionValueAndText('rule-from', selections);
+            }
+                break;
+
+            case 'btn-rule-delete-from': {
+                const selections = $("#rule-from").val();
                 console.log(selections);
 
-                selections.forEach(el => {
-                    $('#rule-from').append(`<option value="${el}">${el}</option>`);
-                })
+                selections.forEach(x => {
+                    $(`#rule-from option[value='${x}']`).remove();
+                });
             }
                 break;
 
             case 'btn-rule-add-to': {
-                console.log('rule add to');
                 const selections = $("#distinct-values-list").val();
-                console.log(selections);
                 $('#rule-to').val(selections[0]);
             }
                 break;
 
+            case 'btn-rule-delete-to':
+                ui.emptyTextBox('rule-to');
+                break;
+
             case 'btn-rule-create': {
-                console.log('rule create');
+                const fromValues = ui.getSelectedOptionListValues('rule-from');
+                const toValue = $('#rule-to').val();
+                normalization.create(columnName, fromValues, toValue);
 
-                const optionValues = [];
+                ui.emptyTextBox('rule-to');
+                ui.emptyOptions('rule-from');
 
-                $('#rule-from option').each(function () {
-                    optionValues.push($(this).val());
-                });
-
-                if (columnNameToEdit) {
-                    if (!rules[columnNameToEdit]) {
-                        rules[columnNameToEdit] = [];
-                    }
-
-                    rules[columnNameToEdit].push({
-                        from: optionValues,
-                        to: $('#rule-to').val()
-                    });
-                }
-
-                $('#rule-to').val('');
-                ui.emptyOptions("rule-from");
-
-                fillExistingRulesListWith(rules[columnNameToEdit]);
-
-                console.log(rules[columnNameToEdit]);
+                fillExistingRules();
             }
                 break;
 
             case 'btn-rule-delete': {
                 const selectedIndices = $("#existing-rules-list").val();
-                console.log(selectedIndices);
-                for (let i = 0; i < selectedIndices.length; ++i) {
-                    selectedIndices[i] = parseInt(selectedIndices[i]);
-                }
-
-                for (let i = rules[columnNameToEdit].length - 1; i > -1; --i) {
-                    if (selectedIndices.includes(i)) {
-                        rules[columnNameToEdit].splice(i, 1);
-                    }
-                }
-
-                fillExistingRulesListWith(rules[columnNameToEdit]);
+                normalization.remove(columnName, selectedIndices);
+                fillExistingRules();
             }
                 break;
 
             case 'set-excel-to-db-table-mapping':
-                dbMapping.createExcelColumnToDbTable(columnNameToEdit, selectedDbTable);
+                mapping.createExcelColumnToDbTable(columnName, selectedDbTable);
+                setModalTitle();
                 break;
 
-
             case 'close-modal':
-                columnNameToEdit = null;
+                columnName = null;
                 $('#columnModal').modal('hide');
                 break;
 
             case 'close-modal-and-re-process':
-                columnNameToEdit = null;
+                columnName = null;
                 $('#columnModal').modal('hide');
                 applyRules();
                 break;
@@ -156,7 +140,7 @@ const columnRulesModal = (function () {
 
                 console.log({ excel, dbRow });
 
-                dbMapping.createExcelValueToDbValue(columnNameToEdit, excel, dbRow);
+                mapping.createExcelValueToDbValue(columnName, excel, dbRow);
 
 
                 renderDistinctValues();
@@ -167,7 +151,7 @@ const columnRulesModal = (function () {
                 const arrExcel = $("#distinct-values-list").val();
 
                 arrExcel.forEach(x => {
-                    dbMapping.deleteMapping(columnNameToEdit, x);
+                    mapping.deleteMapping(columnName, x);
                 });
 
                 renderDistinctValues();
@@ -175,28 +159,78 @@ const columnRulesModal = (function () {
                 break;
 
             case 'btn-mapping-smart': {
-
-                const colIndex = columnNames.indexOf(columnNameToEdit);
-                const colVals = getColumnValues(colIndex, processedRows);
-                const vals = getDistinctValuesInCol(colVals);
-
-                vals.forEach(el => {
+                const distinctValues = getDistinctValuesInColumn(columnName, columnNames, processedRows);
+                distinctValues.forEach(el => {
                     const excel = el.value;
                     const dbRow = getDbRowFor(excel);
 
                     if (dbRow) {
-                        dbMapping.createExcelValueToDbValue(columnNameToEdit, excel, dbRow);
+                        mapping.createExcelValueToDbValue(columnName, excel, dbRow);
                     }
                 });
 
                 renderDistinctValues();
             }
                 break;
+
+            case 'export-db-mapping':
+                exportDbMappingExcel();
+                break;
+
+            case 'export-normalization':
+                exportNormalizationExcel();
+                break;
         }
     }
 
+    function exportDbMappingExcel() {
+        const data = [
+            ['Excel Column Name', 'DB Table Name'],
+            [columnName, selectedDbTable]
+        ];
+        data.push([]);
+        data.push([]);
+
+        const dbRows = db.getRowsForTable(selectedDbTable);
+
+        const dbKeys = Object.keys(dbRows[0]);
+        data.push(['EXCEL', ...dbKeys]);
+        data.push([]);
+
+        const vals = getDistinctValuesInColumn(columnName, columnNames, processedRows);
+        vals.forEach(el => {
+            let mappingObj = { ID: '(none)' };
+            const mappingStr = mapping.lookupMapping(columnName, el.value);
+            if (mappingStr !== '(none)') {
+                mappingObj = JSON.parse(mappingStr);
+            }
+
+            const arr = Object.values(mappingObj)
+            data.push([el.value, ...arr]);
+        });
+
+        excel.write(`db-mapping-${columnName}.xlsx`, 'mapping', data);
+    }
+
+    function exportNormalizationExcel() {
+        const data = [
+            ['Excel Column Name', columnName]
+        ];
+        data.push([]);
+        data.push([]);
+        data.push(['EXCEL', 'NORMALIZED']);
+
+        const colValues = getDistinctValuesInColumn(columnName, columnNames, originalRows);
+
+        colValues.forEach(el => {
+            data.push([el.value, normalization.getNormalizedValueFor(columnName, el.value)]);
+        });
+
+        excel.write(`excel-normalization-${columnName}.xlsx`, 'normalization', data);
+    }
+
     function getDbRowFor(excel) {
-        const fieldName =  $('#db-columns-list').val(); // 'CHANNEL_NAME';
+        const fieldName = $('#db-columns-list').val();
         console.log(fieldName);
         const dbTableRows = db.getRowsForTable(selectedDbTable);
         for (let i = 0; i < dbTableRows.length; ++i) {
@@ -217,38 +251,31 @@ const columnRulesModal = (function () {
     function renderDistinctValues() {
         ui.emptyOptions('distinct-values-list');
 
-        const colIndex = columnNames.indexOf(columnNameToEdit);
-        const colVals = getColumnValues(colIndex, processedRows);
-        const vals = getDistinctValuesInCol(colVals);
-
+        const vals = getDistinctValuesInColumn(columnName, columnNames, processedRows);
         vals.forEach(el => {
-            $('#distinct-values-list').append(`<option value="${el.value}">[${el.value}] - ${el.occurence}x - ${dbMapping.lookupMapping(columnNameToEdit, el.value)}</option>`);
+            $('#distinct-values-list').append(`<option value="${el.value}">[${el.value}] - ${el.occurence}x - ${mapping.lookupMapping(columnName, el.value)}</option>`);
         });
     }
 
+    function setModalTitle() {
+        $('#columnModalLabel').text(`Normalization Rules For Excel Column [${columnName}] - Mapping to DB Table ${selectedDbTable}`);
+    }
+
     function show(targetName) {
-        columnNameToEdit = targetName.replace('btn-col-rule ', '');
+        columnNames = getColumnNames(originalRows);
+        columnName = targetName.replace('btn-col-rule ', '');
+        selectedDbTable = mapping.getDbTableNameForExcelColumn(columnName);
 
-        $('#columnModalLabel').text(`Rules For Column: [${columnNameToEdit}]`);
-
+        setModalTitle();
         renderDistinctValues();
 
+        ui.emptyTextBox('rule-to');
         ui.emptyOptions('rule-from');
 
-        $('#rule-to').val('');
-
-        const existingRules = rules[columnNameToEdit];
-
-        ui.emptyOptions('existing-rules-list');
-
-        if (existingRules) {
-            fillExistingRulesListWith(existingRules);
-        }
-
+        fillExistingRules();
         fillDbTablesList(db.tables.map(x => x.name));
         ui.emptyOptions('db-table-values-list');
 
-        selectedDbTable = dbMapping.getDbTableNameForExcelColumn(columnNameToEdit);
         $("#db-table-list").val(selectedDbTable).change();
 
         showTableFields();

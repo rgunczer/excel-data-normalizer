@@ -53,12 +53,34 @@ const ui = (function () {
         excelEl.appendChild(tableEl);
     }
 
+    function emptyTextBox(txtBoxId) {
+        $(`#${txtBoxId}`).val('');
+    }
+
+    function getSelectedOptionListValues(selectId) {
+        const values = [];
+        $(`#${selectId} option`).each(function () {
+            values.push($(this).val());
+        });
+        return values;
+    }
+
+    function fillSelectionValueAndText(selectId, stringArray) {
+        stringArray.forEach(str => {
+            $(`#${selectId}`).append(`<option value="${str}">${str}</option>`);
+        })
+
+    }
+
     return {
         displayFileInfo,
         showLoading,
         emptyOptions,
+        emptyTextBox,
         setWorking,
-        createTableAndHeaders
+        createTableAndHeaders,
+        fillSelectionValueAndText,
+        getSelectedOptionListValues
     };
 
 })();

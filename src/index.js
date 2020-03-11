@@ -3,9 +3,6 @@
 let originalRows;
 let processedRows;
 
-let columnNames = [];
-
-let rules = {};
 let secret = {};
 
 let excelFileName = '';
@@ -22,7 +19,7 @@ document.getElementById('browse-excel-file')
                 const obj = excel.read(e.target.result);
                 originalRows = obj.rows;
                 sheetName = obj.firstSheet;
-                columnNames = getColumnNames(originalRows);
+                const columnNames = getColumnNames(originalRows);
                 preProcessRawExcelData(originalRows);
                 ui.createTableAndHeaders(columnNames);
             };
@@ -39,7 +36,7 @@ document.getElementById('browse-excel-file')
 
 function applyRules() {
     ui.setWorking(true);
-    const processor = Processor(originalRows, rules);
+    const processor = Processor(originalRows, normalization.getAllRules());
 
     processor.run().then(result => {
         processedRows = result;
@@ -48,7 +45,15 @@ function applyRules() {
 }
 
 document.addEventListener('click', event => {
-    const targetName = event.target.name;
+    let targetName = event.target.name;
+
+    if (!targetName) {
+        const tagName = event.target.tagName;
+        if (tagName === 'I') { // icon
+            targetName = event.target.parentElement.name;
+        }
+    }
+
     console.log('click: ', targetName);
 
     if (targetName) {
@@ -70,7 +75,7 @@ document.addEventListener('click', event => {
                 break;
 
             case 'btn-export-mappings': {
-                const json = JSON.stringify(dbMapping, null, 2);
+                const json = JSON.stringify(mapping, null, 2);
                 navigator.clipboard.writeText(json).then(() => {
                     alert('Mapping Data is on Clipboard');
                 });
@@ -102,24 +107,19 @@ document.addEventListener('click', event => {
 (function () {
 
     const files = [
-        'rules.json',
         'secret.json',
+        'rules.json',
+        'mappings.json',
         'db.json'
     ];
 
     api.loadJson(
         files.map(x => `data/${x}`),
         arr => {
-            rules = arr[0];
-            secret = arr[1];
-
-            const savedRules = localStorage.getItem('rules');
-            console.log('saved rules: ', savedRules);
-            if (savedRules) {
-                rules = JSON.parse(savedRules);
-            }
-
-            db.load(arr[2]);
+            secret = arr[0];
+            normalization.load(arr[1]);
+            mapping.load(arr[2]);
+            db.load(arr[3]);
         });
 
 })();

@@ -2,32 +2,26 @@
 
 function Processor(excelRows, rules) {
 
+    const columnNames = getColumnNames(excelRows);
     const processedRows = [];
     const tableBody = document.getElementsByTagName('table')[0].getElementsByTagName('tbody')[0];
 
-    function createStat() {
+    function createColumnStatButtons() {
         for (let i = 0; i < columnNames.length; ++i) {
-            const colVals = getColumnValues(i, processedRows);
-            // console.log(colVals);
+            const colName = columnNames[i];
+            const vals = getDistinctValuesInColumn(colName, columnNames, processedRows);
 
-            const vals = getDistinctValuesInCol(colVals);
-            // console.log(vals);
-
-            const cellHeader = document.getElementById('cell-header-id ' + columnNames[i]);
-
-
-            const colButtonsContainer = document.getElementById(`column-head-buttons-${columnNames[i]}`);
+            const colButtonsContainer = document.getElementById(`column-head-buttons-${colName}`);
             if (colButtonsContainer) {
                 colButtonsContainer.innerHTML = '';
 
                 const button = document.createElement('button');
                 button.className = 'btn btn-info';
-                button.name = 'btn-col-rule ' + columnNames[i];
-                const t = document.createTextNode(`${vals.length} / ${rules[columnNames[i]] ? rules[columnNames[i]].length : 0}`);
+                button.name = 'btn-col-rule ' + colName;
+                const rulesForCol = rules[colName];
+                const t = document.createTextNode(`${vals.length} / ${rulesForCol ? rulesForCol.length : 0}`);
                 button.appendChild(t);
 
-                // const br = document.createElement("br");
-                // cellHeader.appendChild(br);
                 colButtonsContainer.appendChild(button);
             }
         }
@@ -48,12 +42,12 @@ function Processor(excelRows, rules) {
 
             cellValue = (typeof cellValue === 'undefined') ? '' : cellValue;
 
-            const colName = columnNames[i]
+            const colName = columnNames[i];
             const ruleArr = rules[colName];
 
             if (ruleArr) {
-                for (let ii = 0; ii < ruleArr.length; ++ii) {
-                    const rule = ruleArr[ii];
+                for (let j = 0; j < ruleArr.length; ++j) {
+                    const rule = ruleArr[j];
                     if (rule.from.includes(cellValue)) {
                         cellValue = rule.to;
                         break;
@@ -67,9 +61,7 @@ function Processor(excelRows, rules) {
     }
 
     function run() {
-        localStorage.setItem('rules', JSON.stringify(rules));
-
-        console.log('processor->run', {excelRows, rules});
+        console.log('processor->run', { excelRows, rules });
 
         return new Promise((resolve, reject) => {
 
@@ -79,10 +71,10 @@ function Processor(excelRows, rules) {
                     processRow(i, excelRows[i]);
                 }
 
-                createStat();
+                createColumnStatButtons();
 
                 resolve(processedRows);
-            }, 100);
+            }, 10);
         });
     }
 

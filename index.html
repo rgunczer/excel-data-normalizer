@@ -118,18 +118,30 @@
                                             <i class="fas fa-bolt"></i>Smart
                                         </button>
                                     </div>
-                                    <div class="form-group">
-                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-from" name="btn-rule-add-from">
-                                            <i class="fas fa-plus"></i>Add From
-                                        </button>
+                                    <div class="input-group mb-1">
+                                        <label>From</label>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-from" name="btn-rule-add-from">
+                                                <i class="fas fa-plus"></i>Add
+                                            </button>
+                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-from" name="btn-rule-delete-from">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="form-group">
-                                        <select id="rule-from" size="10" class="form-control" multiple></select>
+                                        <select id="rule-from" size="6" class="form-control" multiple></select>
                                     </div>
-                                    <div class="form-group">
-                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
-                                            <i class="fas fa-plus"></i>Add To
-                                        </button>
+                                    <div class="input-group mb-1">
+                                        <label>To</label>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
+                                                <i class="fas fa-plus"></i>Add
+                                            </button>
+                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-to" name="btn-rule-delete-to">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <input id="rule-to" class="form-control" type="text">
@@ -144,7 +156,7 @@
                         </div>
                         <div class="col-3">
                             <div class="form-group">
-                                <label for="existing-rules-list">Existing Rules</label>
+                                <label for="existing-rules-list">Normalization Rules</label>
                                 <select id="existing-rules-list" class="form-control rule overflow-auto" size="20" multiple></select>
                                 <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete" name="btn-rule-delete" style="margin-top: 6px;">
                                     <i class="fas fa-trash-alt"></i>Delete Selected Rules
@@ -154,8 +166,18 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="close-modal" name="close-modal-and-re-process">Close And Re-Process</button>
-                    <button type="button" class="btn btn-secondary" id="close-modal" name="close-modal">Close</button>
+                    <button type="button" class="btn btn-secondary" id="export-db-mapping" name="export-db-mapping">
+                        <i class="fas fa-file-export"></i>Export DB Mapping
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="export-normalization" name="export-normalization">
+                        <i class="fas fa-file-export"></i>Export Normalization
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="close-modal-and-re-process" name="close-modal-and-re-process">
+                        Close And Re-Process
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="close-modal" name="close-modal">
+                        Close
+                    </button>
                 </div>
             </div>
         </div>
@@ -204,11 +226,12 @@
     <script src="src/excel.js"></script>
     <script src="src/api.js"></script>
     <script src="src/db.js"></script>
-    <script src="src/db-mapping.js"></script>
+    <script src="src/mapping.js"></script>
+    <script src="src/normalization.js"></script>
     <script src="src/processor.js"></script>
     <script src="src/column-rules-modal.js"></script>
     <script src="src/employee-id-harvester-modal.js"></script>
-    <script src="src/app.js"></script>
+    <script src="src/index.js"></script>
 
 </body>
 

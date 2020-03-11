@@ -16,7 +16,6 @@ function preProcessRawExcelData(xlsRows) {
             }
         }
     });
-    console.log('preProcessRawExcelData', xlsRows);
 }
 
 function compareOccurence(a, b) {
@@ -87,6 +86,13 @@ function getDistinctValuesInCol(colValues) {
     sortable.sort(compare);
 
     return sortable;
+}
+
+function getDistinctValuesInColumn(colName, columnNames, dataRows) {
+    const colIndex = columnNames.indexOf(colName);
+    const colVals = getColumnValues(colIndex, dataRows);
+    const distVals = getDistinctValuesInCol(colVals);
+    return distVals;
 }
 
 function removeFirstLastChar(str) {

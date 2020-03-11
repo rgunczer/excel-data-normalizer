@@ -1,10 +1,9 @@
 'use strict';
 
-const dbMapping = (function () {
+const mapping = (function () {
 
     const kDbTableName = 'db-table-name';
     const kExcelToDb = 'excel-to-db';
-
 
     let data = {
         "Channel": {
@@ -50,6 +49,10 @@ const dbMapping = (function () {
         }
     };
 
+    function saveMappings() {
+        localStorage.setItem('mappings', JSON.stringify(data));
+    }
+
     function createExcelColumnToDbTable(excelColumnName, dbTableName) {
         console.log({ excelColumnName, dbTableName });
 
@@ -59,6 +62,7 @@ const dbMapping = (function () {
         } else {
             data[excelColumnName] = { [kDbTableName]: removeFirstLastChar(dbTableName) }
         }
+        saveMappings();
     }
 
     function getDbTableNameForExcelColumn(excelColumnName) {
@@ -73,6 +77,7 @@ const dbMapping = (function () {
             }
             mappingObj[kExcelToDb][excelValue] = dbRow;
         }
+        saveMappings();
     }
 
     function lookupMapping(excelColumnName, excelValue) {
@@ -90,6 +95,17 @@ const dbMapping = (function () {
         if (mappingObj) {
             delete mappingObj['excel-to-db'][excelValue];
         }
+        saveMappings();
+    }
+
+    function load(receivedMappings) {
+        let savedMappings = localStorage.getItem('mappings');
+        if (savedMappings) {
+            savedMappings = JSON.parse(savedMappings);
+        }
+
+        data = {...receivedMappings, ...savedMappings}
+        console.log('db-mapping->load', data);
     }
 
     return {
@@ -98,7 +114,8 @@ const dbMapping = (function () {
         createExcelValueToDbValue,
         getDbTableNameForExcelColumn,
         lookupMapping,
-        deleteMapping
+        deleteMapping,
+        load
     };
 
 })();

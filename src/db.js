@@ -10,12 +10,14 @@ const db = (function () {
         const propNames = lines[0].split(',');
 
         for (let i = 1; i < lines.length; ++i) {
-            const arr = lines[i].split(',');
-            const obj = {};
-            for (let j = 0; j < propNames.length; ++j) {
-                obj[propNames[j]] = arr[j];
+            if (lines[i].trim().length > 0) {
+                const arr = lines[i].split(',');
+                const obj = {};
+                for (let j = 0; j < propNames.length; ++j) {
+                    obj[propNames[j]] = arr[j];
+                }
+                rows.push(obj);
             }
-            rows.push(obj);
         }
 
         return rows;
