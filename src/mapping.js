@@ -70,14 +70,23 @@ const mapping = (function () {
         console.log('db-mapping->load', data);
     }
 
+    function deleteExcelColumnToDbTable(columnName) {
+        delete data[columnName];
+        saveMappings();
+    }
+
+    function getAll() {
+        return {...data};
+    }
     return {
-        data,
         createExcelColumnToDbTable,
         createExcelValueToDbValue,
         getDbTableNameForExcelColumn,
         lookupMapping,
         deleteMapping,
-        load
+        load,
+        deleteExcelColumnToDbTable,
+        getAll
     };
 
 })();

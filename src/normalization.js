@@ -35,7 +35,7 @@ const normalization = (function() {
         return rules[columnName];
     }
 
-    function getAllRules() {
+    function getAll() {
         return {...rules};
     }
 
@@ -69,7 +69,7 @@ const normalization = (function() {
         create,
         remove,
         getRulesForColumn,
-        getAllRules,
+        getAll,
         getNormalizedValueFor
     };
 

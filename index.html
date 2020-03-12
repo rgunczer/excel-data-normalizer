@@ -7,7 +7,7 @@
     <title>TAG Excel Importer</title>
     <script lang="javascript" src="node_modules/xlsx/dist/xlsx.full.min.js"></script>
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/FileSaver.min.js"></script>
     <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
@@ -17,29 +17,47 @@
 <body>
 
     <nav class="navbar navbar-dark bg-dark justify-content-start">
-        <a class="navbar-brand" href="#"><i class="fas fa-file-import"></i>TAG Excel Importer</a>
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-file-import" style="margin-right: 6px;"></i>TAG Excel Importer</a>
         <form class="form-inline my-2 my-lg-0">
             <label class="btn btn-primary mr-sm-2">
                 <input type="file" id="browse-excel-file" />
-                <i class="far fa-file-excel"></i>Browse Excel File...
+                <span>
+                    <i class="far fa-file-excel"></i>
+                    Browse Excel File...
+                </span>
             </label>
             <button id="process" type="button" name="process" class="btn btn-primary mr-sm-2">
-                <i id="processing-icon" class="fas fa-hammer"></i>
-                Process
+                <span>
+                    <i id="processing-icon" class="fas fa-microchip"></i>
+                    Process
+                </span>
             </button>
             <div class="input-group mr-sm-2">
                 <button id="openGetEmpIdModal" type="button" name="openGetEmpIdModal" class="btn btn-primary">
-                    <i class="fas fa-id-card"></i>Fetch Employee Ids
+                    <span>
+                        <i class="fas fa-id-card"></i>
+                        Fetch Employee Ids
+                    </span>
                 </button>
             </div>
             <button id="btn-export-rules" type="button" name="btn-export-rules" class="btn btn-primary mr-sm-2">
-                <i class="fas fa-share"></i>Export Rules
+                <span>
+                    <i class="fas fa-share"></i>
+                    Export Rules
+                </span>
             </button>
             <button id="btn-export-mappings" type="button" name="btn-export-mappings" class="btn btn-primary mr-sm-2">
-                <i class="fas fa-share"></i>Export Mappings
+                <span>
+                    <i class="fas fa-share"></i>
+                    Export Mappings
+                </span>
             </button>
             <button id="btn-save-excel-file" type="button" name="btn-save-excel-file" class="btn btn-primary mr-sm-2">
-                <i class="fas fa-file-download"></i>Save Excel File...
+                <span>
+                    <i class="fas fa-file-download"></i>
+                    Save Excel File...
+                </span>
             </button>
         </form>
         <span class="navbar-text"></span>
@@ -50,7 +68,7 @@
     </div>
 
     <div class="modal fade" id="columnModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-xl" style="min-width: 90%;">
+        <div class="modal-dialog modal-xl" style="min-width: 95%;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="columnModalLabel"></h5>
@@ -89,26 +107,32 @@
                             <div class="form-group" style="text-align: center;">
                                 <label>DB Mapping</label>
                                 <div class="form-group" style="text-align: center;">
-                                    <select id="db-columns-list" class="form-control rule"></select>
+                                    <select id="db-columns-list" class="form-control rule form-control-sm"></select>
                                 </div>
                                 <button id="btn-mapping-smart" name="btn-mapping-smart" class="btn btn-info btn-sm">
-                                    <i class="fas fa-bolt"></i>Smart
+                                    <span>
+                                        <i class="fas fa-bolt"></i>Smart
+                                    </span>
                                 </button>
                             </div>
                             <div class="form-group" style="text-align: center;">
                                 <button id="btn-mapping-add" name="btn-mapping-add" class="btn btn-info btn-sm">
-                                    <i class="fas fa-plus"></i>Add
+                                    <span>
+                                        <i class="fas fa-plus"></i>Add
+                                    </span>
                                 </button>
                             </div>
                             <div class="form-group" style="text-align: center;">
                                 <button id="btn-mapping-delete" name="btn-mapping-delete" class="btn btn-info btn-sm">
-                                    <i class="fas fa-trash-alt"></i>Delete
+                                    <span>
+                                        <i class="fas fa-trash-alt"></i>Delete
+                                    </span>
                                 </button>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label for="distinct-values-list">Distinct Values</label>
+                                <label id="label-distinct-values" for="distinct-values-list">Distinct Values</label>
                                 <select id="distinct-values-list" class="form-control rule overflow-auto" size="20" multiple></select>
                             </div>
                         </div>
@@ -116,42 +140,57 @@
                             <form>
                                 <div class="form-group">
                                     <label>Rule</label>
-                                    <div class="form-group">
+                                    <div class="form-group" style="text-align: center;">
                                         <button type="button" class="btn btn-info btn-sm" id="btn-rule-create-smart" name="btn-rule-create-smart">
-                                            <i class="fas fa-bolt"></i>Smart
+                                            <span>
+                                                <i class="fas fa-bolt"></i>Smart
+                                            </span>
                                         </button>
                                     </div>
-                                    <div class="input-group mb-1">
-                                        <label>From</label>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-from" name="btn-rule-add-from">
-                                                <i class="fas fa-plus"></i>Add
-                                            </button>
-                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-from" name="btn-rule-delete-from">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
+
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <label for="rule-from">From</label>
+                                        </div>
+                                        <div class="col">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-from" name="btn-rule-add-from">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-from" name="btn-rule-delete-from">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <select id="rule-from" size="6" class="form-control" multiple></select>
+                                    <div class="form-row">
+                                        <select id="rule-from" size="6" class="form-control form-control-sm" multiple></select>
                                     </div>
-                                    <div class="input-group mb-1">
-                                        <label>To</label>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
-                                                <i class="fas fa-plus"></i>Add
-                                            </button>
-                                            <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-to" name="btn-rule-delete-to">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
+                                    &nbsp;
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <label for="rule-to">To</label>
+                                        </div>
+                                        <div class="col">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-to" name="btn-rule-delete-to">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <input id="rule-to" class="form-control" type="text">
+                                    <div class="form-row">
+                                        <input id="rule-to" class="form-control form-control-sm" type="text">
                                     </div>
+                                    &nbsp;
                                     <div class="form-group">
                                         <button type="button" class="btn btn-info btn-sm" id="btn-rule-create" name="btn-rule-create">
-                                            <i class="fas fa-gavel"></i>Create Rule
+                                            <span>
+                                                <i class="fas fa-gavel"></i>Create Rule
+                                            </span>
                                         </button>
                                     </div>
                                 </div>
@@ -162,7 +201,9 @@
                                 <label for="existing-rules-list">Normalization Rules</label>
                                 <select id="existing-rules-list" class="form-control rule overflow-auto" size="20" multiple></select>
                                 <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete" name="btn-rule-delete" style="margin-top: 6px;">
-                                    <i class="fas fa-trash-alt"></i>Delete Selected Rules
+                                    <span>
+                                        <i class="fas fa-trash-alt"></i>Delete Selected Rules
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -170,13 +211,22 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="export-db-mapping" name="export-db-mapping">
-                        <i class="fas fa-file-export"></i>Export DB Mapping
+                        <span>
+                            <i class="fas fa-file-export"></i>
+                            Export DB Mapping
+                        </span>
                     </button>
                     <button type="button" class="btn btn-secondary" id="export-normalization" name="export-normalization">
-                        <i class="fas fa-file-export"></i>Export Normalization
+                        <span>
+                            <i class="fas fa-file-export"></i>
+                            Export Normalization
+                        </span>
                     </button>
-                    <button type="button" class="btn btn-secondary" id="close-modal-and-re-process" name="close-modal-and-re-process">
-                        Close And Re-Process
+                    <button type="button" class="btn btn-secondary" id="btn-re-process" name="btn-re-process">
+                        <span>
+                            <i class="fas fa-microchip"></i>
+                            Re-Process
+                        </span>
                     </button>
                     <button type="button" class="btn btn-secondary" id="close-modal" name="close-modal">
                         Close
@@ -204,8 +254,11 @@
                         </div>
                         <div class="row" style="margin-top: 10px;">
                             <div class="col-4">
-                                <button type="button" class="btn btn-secondary btn-sm" id="begin-getting-emp-ids" name="begin-getting-emp-ids">
-                                    <i class="fas fa-play"></i>Begin Getting Employee Ids
+                                <button type="button" class="btn btn-info btn-sm" id="begin-getting-emp-ids" name="begin-getting-emp-ids">
+                                    <span>
+                                        <i class="fas fa-play"></i>
+                                        Begin Getting Employee Ids
+                                    </span>
                                 </button>
                             </div>
                             <div class="col-8">
@@ -216,7 +269,10 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="export-to-excel-empids" name="export-to-excel-empids">
-                        <i class="fas fa-file-download"></i>Export To Excel
+                        <span>
+                            <i class="fas fa-file-download"></i>
+                            Export To Excel
+                        </span>
                     </button>
                     <button type="button" class="btn btn-secondary" id="close-modal-empid" name="close-modal-empid">Close</button>
                 </div>
@@ -233,7 +289,7 @@
     <script src="src/normalization.js"></script>
     <script src="src/processor.js"></script>
     <script src="src/column-rules-modal.js"></script>
-    <script src="src/employee-id-harvester-modal.js"></script>
+    <script src="src/collect-empid-modal.js"></script>
     <script src="src/index.js"></script>
 
 </body>

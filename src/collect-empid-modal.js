@@ -5,6 +5,7 @@ const employeeIdHarvesterModal = (function () {
     let columnNameToEdit = null;
     let employeeNamesToGetEmpIds = [];
     let fetchEmpIdIndex = 0;
+    let columnNames = [];
 
     $("#column-list").change(function () {
         columnNameToEdit = '';
@@ -71,6 +72,8 @@ const employeeIdHarvesterModal = (function () {
     function handle(targetName) {
         switch (targetName) {
             case 'openGetEmpIdModal': {
+                columnNames = getColumnNames(originalRows);
+
                 ui.emptyOptions('column-list');
                 columnNames.forEach(colName => {
                     $('#column-list').append(`<option value="${colName}">[${colName}]</option>`);

@@ -119,7 +119,10 @@ const columnRulesModal = (function () {
                 break;
 
             case 'del-excel-to-db-table-mapping':
-                // todo: delete entire mapping entry
+                mapping.deleteExcelColumnToDbTable(columnName);
+                setModalTitle();
+                fillDbTableValuesList();
+                renderDistinctValues();
                 break;
 
             case 'close-modal':
@@ -127,10 +130,10 @@ const columnRulesModal = (function () {
                 $('#columnModal').modal('hide');
                 break;
 
-            case 'close-modal-and-re-process':
-                columnName = null;
-                $('#columnModal').modal('hide');
-                applyRules();
+            case 'btn-re-process':
+                applyRules().then(() => {
+                    init();
+                });
                 break;
 
             case 'btn-mapping-add': {
@@ -262,15 +265,15 @@ const columnRulesModal = (function () {
         vals.forEach(el => {
             $('#distinct-values-list').append(`<option value="${el.value}">[${el.value}] - ${el.occurence}x - ${mapping.lookupMapping(columnName, el.value)}</option>`);
         });
+
+        $('#label-distinct-values').text(`Distinct Values [${vals.length}]`);
     }
 
     function setModalTitle() {
         $('#columnModalLabel').text(`Normalization Rules For Excel Column [${columnName}] - Mapping to DB Table ${selectedDbTable}`);
     }
 
-    function show(targetName) {
-        columnNames = getColumnNames(originalRows);
-        columnName = targetName.replace('btn-col-rule ', '');
+    function init() {
         selectedDbTable = mapping.getDbTableNameForExcelColumn(columnName);
 
         setModalTitle();
@@ -286,6 +289,13 @@ const columnRulesModal = (function () {
         $("#db-table-list").val(selectedDbTable).change();
 
         showTableFields();
+    }
+
+    function show(targetName) {
+        columnNames = getColumnNames(originalRows);
+        columnName = targetName.replace('btn-col-rule ', '');
+
+        init();
 
         $('#columnModal').modal('show');
     }

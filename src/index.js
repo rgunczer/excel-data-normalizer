@@ -35,13 +35,21 @@ document.getElementById('browse-excel-file')
     }, false);
 
 function applyRules() {
-    ui.setWorking(true);
-    const processor = Processor(originalRows, normalization.getAllRules());
 
-    processor.run().then(result => {
-        processedRows = result;
-        ui.setWorking(false);
+    return new Promise((resolve, reject) => {
+
+        ui.setWorking(true);
+        const processor = Processor(originalRows, normalization.getAll());
+
+        processor.run().then(result => {
+            processedRows = result;
+            ui.setWorking(false);
+
+            resolve('ok');
+        });
+
     });
+
 }
 
 document.addEventListener('click', event => {
@@ -49,8 +57,13 @@ document.addEventListener('click', event => {
 
     if (!targetName) {
         const tagName = event.target.tagName;
-        if (tagName === 'I') { // icon
-            targetName = event.target.parentElement.name;
+        if (tagName === 'I' || tagName === 'SPAN') {
+            const btn = event.target.closest('button');
+            if (btn) {
+                targetName = btn.name;
+            } else {
+                return;
+            }
         }
     }
 
@@ -67,7 +80,7 @@ document.addEventListener('click', event => {
 
         switch (targetName) {
             case 'btn-export-rules': {
-                const json = JSON.stringify(rules, null, 2);
+                const json = JSON.stringify(normalization.getAll(), null, 2);
                 navigator.clipboard.writeText(json).then(() => {
                     alert('Rules Data is on Clipboard');
                 });
@@ -75,7 +88,7 @@ document.addEventListener('click', event => {
                 break;
 
             case 'btn-export-mappings': {
-                const json = JSON.stringify(mapping, null, 2);
+                const json = JSON.stringify(mapping.getAll(), null, 2);
                 navigator.clipboard.writeText(json).then(() => {
                     alert('Mapping Data is on Clipboard');
                 });

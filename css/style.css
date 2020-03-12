@@ -12,11 +12,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* .table-responsive {
-    height: 400px;
-    overflow: scroll;
-} */
-
 thead tr:nth-child(1) th {
     background: white;
     position: sticky;
@@ -40,7 +35,7 @@ td, th {
     min-width: 150px;
 }
 
-i {
+span > i {
     margin-right: 6px;
 }
 
