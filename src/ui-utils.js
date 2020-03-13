@@ -11,7 +11,10 @@ const ui = (function () {
     }
 
     function emptyOptions(elementId) {
-        document.getElementById(elementId).options.length = 0;
+        const el =document.getElementById(elementId);
+        if (el) {
+            el.options.length = 0;
+        }
     }
 
     function setWorking(working) {
@@ -25,7 +28,7 @@ const ui = (function () {
 
     function createTableAndHeaders(columns) {
         const tableEl = document.createElement('table');
-        tableEl.className = "table table-bordered";
+        tableEl.className = "table table-bordered table-sm table-hover";
 
         // header
         const tableHeadEl = tableEl.createTHead();

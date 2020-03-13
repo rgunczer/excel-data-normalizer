@@ -6,6 +6,17 @@ const columnRulesModal = (function () {
     let columnName = null;
     let selectedDbTable = '';
 
+    function filterDbRows(event) {
+        const filterValue = $(`#${event.target.id}`).val();
+        console.log('filterDbRows', event.target.id, filterValue);
+        const colName = event.target.id.replace('db-col-filter-', '');
+        console.log(colName);
+        fillDbTableRows({
+            colName,
+            filterValue
+        })
+    }
+
     function fillExistingRules() {
         ui.emptyOptions("existing-rules-list");
 
@@ -26,17 +37,94 @@ const columnRulesModal = (function () {
         });
     }
 
-    function fillDbTableValuesList(values) {
-        ui.emptyOptions('db-table-values-list');
+    function fillDbTableValuesList(rows) {
+        if (rows.length > 0) {
+            // head
+            const filterTextBoxIds = [];
+            let headHtml = '<tr>' + Object.keys(rows[0]).map(x => {
+                const txtId = `db-col-filter-${x}`;
+                filterTextBoxIds.push(txtId);
+                return `<th>${x}<br><input id="${txtId}" type="text"></th>`;
+            }).join('') + '</tr>';
 
-        let index = 0;
-        values.forEach(val => {
-            // const v = val.replace(/,/g, ' - ');
-            $('#db-table-values-list').append(`<option value="${index++}">[${JSON.stringify(val)}]</option>`);
-        });
+            $('#db-table-rows thead').html(headHtml);
+
+            filterTextBoxIds.forEach((id) => {
+                $('#' + id).on('input', filterDbRows);
+            });
+
+            fillDbTableRows(null);
+        }
     }
 
-    function handle(targetName) {
+    function fillDbTableRows(filter) {
+        const rows = db.getRowsForTable(selectedDbTable);
+        const idColName = rows[0].hasOwnProperty('USER_ID') ? 'USER_ID' : 'ID';
+        let resultingRows = rows;
+
+        if (filter && filter.filterValue.length > 2) {
+            resultingRows = resultingRows.filter((x) => {
+                const colValue = x[filter.colName].toLowerCase();
+                if (isString(colValue)) {
+                    if (colValue.indexOf(filter.filterValue.toLowerCase()) !== -1) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            resultingRows.sort(getComparatorFn(filter.colName));
+        }
+
+        let bodyHtml = '';
+        resultingRows.forEach(row => {
+            const arr = Object.values(row).map(x => `<td>${x}</td>`);
+            bodyHtml += `<tr id="table-row-${row[idColName]}">` + arr.join('') + '</tr>';
+        });
+        $('#db-table-rows tbody').html(bodyHtml);
+    }
+
+    function showTableFields() {
+        const rows = db.getRowsForTable(selectedDbTable);
+        if (rows && rows.length > 0) {
+            const html = Object.keys(rows[0]).map(x => getCbHtml(x)).join('');
+            $('#collapseVisibleFields').html(html);
+
+            ui.emptyOptions('db-columns-list');
+
+            Object.keys(rows[0]).forEach(el => {
+                $('#db-columns-list').append(`<option value="${el}">[${el}]</option>`);
+            });
+        }
+
+    }
+
+    function handle(event) {
+        let targetName = event.target.name;
+        let tagName = event.target.tagName;
+
+        if (tagName === 'TD') {
+            const tr = event.target.closest('tr');
+            if (tr) {
+                console.log(tr.id);
+                // const id = tr.id.replace('table-row-', '');
+
+                $('#db-table-rows tbody tr').removeClass('bg-primary');
+                $(`#${tr.id}`).addClass('bg-primary');
+            }
+            return;
+        }
+
+        if (!targetName) {
+            const tagName = event.target.tagName;
+            if (tagName === 'I' || tagName === 'SPAN') {
+                const btn = event.target.closest('button');
+                if (btn) {
+                    targetName = btn.name;
+                } else {
+                    return;
+                }
+            }
+        }
 
         switch (targetName) {
 
@@ -90,6 +178,25 @@ const columnRulesModal = (function () {
             }
                 break;
 
+            case 'btn-rule-add-db-to': {
+                const selectedDbRow = $('#db-table-rows tbody tr.bg-primary');
+
+                if (selectedDbRow && selectedDbRow.length > 0) {
+                    const id = selectedDbRow[0].id.replace('table-row-', '');
+                    const rows = db.getRowsForTable(selectedDbTable);
+
+                    if (rows.length > 0) {
+                        const idPropName = rows[0].hasOwnProperty('USER_ID') ? 'USER_ID' : 'ID';
+                        const propName = $('#db-columns-list').val();
+                        const dbRow = rows.find(x => x[idPropName] === id)
+                        if (dbRow) {
+                            $('#rule-to').val(dbRow[propName]);
+                        }
+                    }
+                }
+            }
+            break;
+
             case 'btn-rule-delete-to':
                 ui.emptyTextBox('rule-to');
                 break;
@@ -138,19 +245,25 @@ const columnRulesModal = (function () {
 
             case 'btn-mapping-add': {
                 const arrExcel = $("#distinct-values-list").val();
-                const dbRowIndex = $("#db-table-values-list").val();
+                const selectedDbRow = $('#db-table-rows tbody tr.bg-primary');
 
-                const rows = db.getRowsForTable(selectedDbTable);
+                if (selectedDbRow && selectedDbRow.length > 0) {
+                    const id = selectedDbRow[0].id.replace('table-row-', '');
+                    const rows = db.getRowsForTable(selectedDbTable);
 
-                const excel = arrExcel[0];
-                const dbRow = rows[dbRowIndex];
+                    if (rows.length > 0) {
+                        const idPropName = rows[0].hasOwnProperty('USER_ID') ? 'USER_ID' : 'ID';
+                        const dbRow = rows.find(x => x[idPropName] === id)
+                        if (dbRow) {
+                            const excel = arrExcel[0];
 
-                console.log({ excel, dbRow });
+                            mapping.createExcelValueToDbValue(columnName, excel, dbRow);
+                            renderDistinctValues();
 
-                mapping.createExcelValueToDbValue(columnName, excel, dbRow);
-
-
-                renderDistinctValues();
+                            $('#db-table-rows tbody tr').removeClass('bg-primary');
+                        }
+                    }
+                }
             }
                 break;
 
@@ -298,21 +411,6 @@ const columnRulesModal = (function () {
         init();
 
         $('#columnModal').modal('show');
-    }
-
-    function showTableFields() {
-        const rows = db.getRowsForTable(selectedDbTable);
-        if (rows && rows.length > 0) {
-            const html = Object.keys(rows[0]).map(x => getCbHtml(x)).join('');
-            $('#collapseVisibleFields').html(html);
-
-            ui.emptyOptions('db-columns-list');
-
-            Object.keys(rows[0]).forEach(el => {
-                $('#db-columns-list').append(`<option value="${el}">[${el}]</option>`);
-            });
-        }
-
     }
 
     function getCbHtml(colName) {

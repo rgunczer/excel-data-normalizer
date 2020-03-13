@@ -54,6 +54,18 @@ function applyRules() {
 
 document.addEventListener('click', event => {
     let targetName = event.target.name;
+    let tagName = event.target.tagName;
+
+    console.log('tag: ', tagName);
+
+    if ($('body').hasClass('modal-open')) {
+
+        if ($('#columnModal').hasClass('show')) {
+            columnRulesModal.handle(event);
+            return;
+        }
+
+    }
 
     if (!targetName) {
         const tagName = event.target.tagName;
@@ -75,7 +87,6 @@ document.addEventListener('click', event => {
             return;
         }
 
-        columnRulesModal.handle(targetName);
         employeeIdHarvesterModal.handle(targetName);
 
         switch (targetName) {

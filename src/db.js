@@ -11,7 +11,14 @@ const db = (function () {
 
         for (let i = 1; i < lines.length; ++i) {
             if (lines[i].trim().length > 0) {
-                const arr = lines[i].split(',');
+                const arr = lines[i].split(',').map(x => {
+                    if (isString(x)) {
+                        if (x.startsWith('"') && x.endsWith('"')) {
+                            return x.slice(1, -1).trim();
+                        }
+                    }
+                    return x;
+                });
                 const obj = {};
                 for (let j = 0; j < propNames.length; ++j) {
                     obj[propNames[j]] = arr[j];

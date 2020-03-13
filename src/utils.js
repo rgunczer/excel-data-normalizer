@@ -31,6 +31,23 @@ function compareOccurence(a, b) {
     return 0;
 }
 
+function getComparatorFn(propName) {
+
+    return function compare(a, b) {
+        const aValue = a[propName].toLowerCase();
+        const bValue = b[propName].toLowerCase();
+
+        if (aValue < bValue) {
+            return -1;
+        }
+        if (aValue > bValue) {
+            return 1;
+        }
+        return 0;
+    }
+}
+
+
 function compare(a, b) {
     const aValue = a.value.toLowerCase();
     const bValue = b.value.toLowerCase();
@@ -97,4 +114,8 @@ function getDistinctValuesInColumn(colName, columnNames, dataRows) {
 
 function removeFirstLastChar(str) {
     return str.slice(1, -1);
+}
+
+function isString(str) {
+    return Object.prototype.toString.call(str) === "[object String]"
 }

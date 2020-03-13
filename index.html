@@ -100,7 +100,12 @@
                             <div class="form-group">
                                 <div class="collapse" id="collapseVisibleFields">
                                 </div>
-                                <select id="db-table-values-list" class="form-control rule overflow-auto" size="20" multiple></select>
+                                <div class="overflow-auto" style="height: 500px;">
+                                    <table id="db-table-rows" class="table table-bordered table-hover table-sm">
+                                        <thead class="thead-light"></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                         <div class="col-1">
@@ -118,7 +123,7 @@
                             <div class="form-group" style="text-align: center;">
                                 <button id="btn-mapping-add" name="btn-mapping-add" class="btn btn-info btn-sm">
                                     <span>
-                                        <i class="fas fa-plus"></i>Add
+                                        <i class="fas fa-link"></i>Map
                                     </span>
                                 </button>
                             </div>
@@ -175,6 +180,9 @@
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
                                                     <i class="fas fa-plus"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-db-to" name="btn-rule-add-db-to">
+                                                    <i class="fas fa-database"></i>
                                                 </button>
                                                 <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-to" name="btn-rule-delete-to">
                                                     <i class="fas fa-trash-alt"></i>
