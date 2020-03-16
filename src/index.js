@@ -65,6 +65,11 @@ document.addEventListener('click', event => {
             return;
         }
 
+        if ($('#pipelineModal').hasClass('show')) {
+            pipelineModal.handle(event);
+            return;
+        }
+
     }
 
     if (!targetName) {
@@ -123,6 +128,10 @@ document.addEventListener('click', event => {
 
             case 'process':
                 applyRules();
+                break;
+
+            case 'pipeline':
+                pipelineModal.show();
                 break;
         }
     }
