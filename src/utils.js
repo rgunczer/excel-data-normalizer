@@ -61,12 +61,64 @@ function compare(a, b) {
     return 0;
 }
 
-function getColumnNames(rows) {
-    const arr = [];
-    for (let i = 0; i < rows[0].length; ++i) {
-        arr.push(rows[0][i]);
+function splitColumnValue(value, regExpStr) {
+    const arr = value.split(new RegExp(regExpStr));
+    arr[0] = arr[0].trim();
+    if (arr.length > 1) {
+        arr[1] = arr[1].trim();
+    } else {
+        arr[1] = '';
     }
     return arr;
+}
+
+function splitColumn(sourceValues, regExpStr) {
+    const resultValues = [];
+    sourceValues.forEach(val => {
+        const arr = splitColumnValue(val, regExpStr);
+        resultValues.push([val, arr[0], arr[1]]);
+    });
+    return resultValues;
+}
+
+function getPipeline() {
+    const str = localStorage.getItem('pipeline');
+    if (str) {
+        const pipeline = JSON.parse(str);
+        return pipeline;
+    }
+    return null;
+}
+
+function getOriginalColumnNames(rows) {
+    const columns = [];
+    for (let i = 0; i < rows[0].length; ++i) {
+        const colName = rows[0][i];
+        columns.push(colName);
+    }
+    return columns;
+}
+
+function getColumnNames(rows) {
+    const pipeline = getPipeline();
+    const columns = [];
+    for (let i = 0; i < rows[0].length; ++i) {
+        const colName = rows[0][i];
+        if (pipeline) {
+            if (pipeline[colName]) {
+                const config = pipeline[colName];
+                if (!config['hide-original-column']) {
+                    columns.push(colName);
+                }
+                config['new-column-names'].forEach(col => {
+                    columns.push(col);
+                })
+                continue;
+            }
+        }
+        columns.push(colName);
+    }
+    return columns;
 }
 
 function getColumnValues(colIndex, rows) {

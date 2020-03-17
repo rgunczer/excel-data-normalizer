@@ -19,7 +19,7 @@ const pipelineModal = (function () {
 
         resultColumn.names[0] = columnNameToEdit;
 
-        const columnNames = getColumnNames(originalRows);
+        const columnNames = getOriginalColumnNames(originalRows);
         sourceColumnValues = getDistinctValuesInColumn(columnNameToEdit, columnNames, originalRows)
             .map(x => x.value);
 
@@ -32,25 +32,6 @@ const pipelineModal = (function () {
         renderTable();
         renderTableRows();
     });
-
-    function split() {
-        resultColumn.values = [];
-
-        const splitRegExpStr = $('#pipeline-split-chars').val();
-
-        sourceColumnValues.forEach(val => {
-            const arr = val.split(new RegExp(splitRegExpStr));
-            arr[0] = arr[0].trim();
-            if (arr.length > 1) {
-                arr[1] = arr[1].trim();
-            } else {
-                arr[1] = '';
-            }
-            resultColumn.values.push([val, arr[0], arr[1]]);
-        });
-
-        renderTableRows();
-    }
 
     function save() {
         const obj = {};
@@ -86,7 +67,7 @@ const pipelineModal = (function () {
     }
 
     function init() {
-        const columnNames = getColumnNames(originalRows);
+        const columnNames = getOriginalColumnNames(originalRows);
         ui.emptyOptions('pipeline-excel-column-list');
         columnNames.forEach(name => {
             $('#pipeline-excel-column-list').append(`<option value="${name}">${name}</option>`);
@@ -124,7 +105,12 @@ const pipelineModal = (function () {
                 break;
 
             case 'pipeline-split-column':
-                split();
+                {
+                    const splitRegExpStr = $('#pipeline-split-chars').val();
+
+                    resultColumn.values = splitColumn(sourceColumnValues, splitRegExpStr);
+                    renderTableRows();
+                }
                 break;
 
             case 'pipeline-save':

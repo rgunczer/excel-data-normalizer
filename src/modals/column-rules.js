@@ -343,13 +343,18 @@ const columnRulesModal = (function () {
         data.push([]);
         data.push(['EXCEL', 'NORMALIZED']);
 
-        const colValues = getDistinctValuesInColumn(columnName, columnNames, originalRows);
+        const processor = Processor(originalRows, {});
 
-        colValues.forEach(el => {
-            data.push([el.value, normalization.getNormalizedValueFor(columnName, el.value)]);
+        processor.run().then(result => {
+            const processedRows = result;
+            const colValues = getDistinctValuesInColumn(columnName, columnNames, processedRows);
+
+            colValues.forEach(el => {
+                data.push([el.value, normalization.getNormalizedValueFor(columnName, el.value)]);
+            });
+
+            excel.write(`excel-normalization-${columnName}.xlsx`, 'normalization', data);
         });
-
-        excel.write(`excel-normalization-${columnName}.xlsx`, 'normalization', data);
     }
 
     function getDbRowFor(excel) {

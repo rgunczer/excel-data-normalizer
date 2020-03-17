@@ -60,15 +60,61 @@ function Processor(excelRows, rules) {
         }
     }
 
+    function getColIndexToSplit(pipeline) {
+        const originalColumnNames = getOriginalColumnNames(excelRows);
+        for (let i = 0; i < originalColumnNames.length; ++i) {
+            const colName = originalColumnNames[i];
+            if (pipeline[colName]) {
+                return {
+                    config: pipeline[colName],
+                    index: i
+                };
+            }
+        }
+        return null;
+    }
+
+    function getSplittedRow(row, pipeline) {
+        const splittedRow = [];
+        const splitInfo = getColIndexToSplit(pipeline);
+        if (!splitInfo) {
+            return row;
+        }
+        for (let i = 0; i < row.length; ++i) {
+            const cellValue = row[i];
+            if (i === splitInfo.index) {
+                const { config } = splitInfo;
+                const splittedValues = splitColumnValue(cellValue, config['split-regexp']);
+                splittedValues.forEach(val => {
+                    splittedRow.push(val);
+                });
+            } else {
+                splittedRow.push(cellValue);
+            }
+        }
+        return splittedRow;
+    }
+
     function run() {
         console.log('processor->run', { excelRows, rules });
 
         return new Promise((resolve, reject) => {
 
             setTimeout(() => {
+                let pipelinedRows = excelRows;
 
-                for (let i = 1; i < excelRows.length; ++i) {
-                    processRow(i, excelRows[i]);
+                const pipeline = getPipeline();
+                if (pipeline) {
+                    pipelinedRows = [];
+                    for (let i = 1; i < excelRows.length; ++i) {
+                        const row = excelRows[i];
+                        const splittedRow = getSplittedRow(row, pipeline);
+                        pipelinedRows.push(splittedRow);
+                    }
+                }
+
+                for (let i = 1; i < pipelinedRows.length; ++i) {
+                    processRow(i, pipelinedRows[i]);
                 }
 
                 createColumnStatButtons();
