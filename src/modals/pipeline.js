@@ -56,6 +56,7 @@ const pipelineModal = (function () {
         const obj = {};
         obj[columnNameToEdit] = {
             "split-regexp": $('#pipeline-split-chars').val(),
+            "hide-original-column": $('#hide-original-column').prop('checked'),
             "new-column-names": [
                 $('#pipe-col-name-' + resultColumn.names[1]).val(),
                 $('#pipe-col-name-' + resultColumn.names[2]).val()
