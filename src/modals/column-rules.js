@@ -98,6 +98,14 @@ const columnRulesModal = (function () {
 
     }
 
+    function extractEmpId(str) {
+        const startPos = str.indexOf('[');
+        const endPos = str.indexOf(']')
+        if (startPos !== -1 && endPos !== -1) {
+            return str.substr(startPos + 1, endPos - startPos - 1).trim();
+        }
+    }
+
     function handle(event) {
         let targetName = event.target.name;
         let tagName = event.target.tagName;
@@ -195,7 +203,7 @@ const columnRulesModal = (function () {
                     }
                 }
             }
-            break;
+                break;
 
             case 'btn-rule-delete-to':
                 ui.emptyTextBox('rule-to');
@@ -276,6 +284,27 @@ const columnRulesModal = (function () {
 
                 renderDistinctValues();
             }
+                break;
+
+            case 'btn-mapping-smart-empid':
+                {
+                    if (!selectedDbTable) {
+                        alert('No DB Table Name Set')
+                    }
+
+                    const distinctValues = getDistinctValuesInColumn(columnName, columnNames, processedRows);
+
+                    distinctValues.forEach(el => {
+                        const excel = el.value;
+                        const empId = extractEmpId(excel);
+                        const dbRow = getDbRowFor(empId);
+
+                        if (dbRow) {
+                            mapping.createExcelValueToDbValue(columnName, excel, dbRow);
+                        }
+                    });
+
+                }
                 break;
 
             case 'btn-mapping-smart': {
