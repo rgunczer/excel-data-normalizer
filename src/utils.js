@@ -116,7 +116,7 @@ function getColumnNames(rows) {
                 continue;
             }
         }
-        columns.push(colName);
+        columns.push(colName.trim());
     }
     return columns;
 }
