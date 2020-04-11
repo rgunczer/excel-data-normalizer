@@ -9,6 +9,7 @@
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/FileSaver.min.js"></script>
+    <script src="lib/vue.js"></script>
     <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -16,349 +17,45 @@
 
 <body>
 
-    <nav class="navbar navbar-dark bg-dark justify-content-start">
-        <a class="navbar-brand" href="#">
-            <i class="fas fa-file-import" style="margin-right: 6px;"></i>TAG Excel Importer</a>
-        <form class="form-inline my-2 my-lg-0">
-            <label class="btn btn-primary mr-sm-2">
-                <input type="file" id="browse-excel-file" />
-                <span>
-                    <i class="far fa-file-excel"></i>
-                    Browse Excel File...
-                </span>
-            </label>
-            <button id="pipeline" type="button" name="pipeline" class="btn btn-primary mr-sm-2">
-                <span>
-                    <i class="fas fa-grip-lines-vertical"></i>
-                    Pipeline
-                </span>
-            </button>
-            <button id="process" type="button" name="process" class="btn btn-primary mr-sm-2">
-                <span>
-                    <i id="processing-icon" class="fas fa-microchip"></i>
-                    Process
-                </span>
-            </button>
-            <button id="openGetEmpIdModal" type="button" name="openGetEmpIdModal" class="btn btn-primary mr-sm-2">
-                <span>
-                    <i class="fas fa-id-card"></i>
-                    Fetch Employee Ids
-                </span>
-            </button>
-            <button id="btn-export-rules" type="button" name="btn-export-rules" class="btn btn-primary mr-sm-2">
-                <span>
-                    <i class="fas fa-share"></i>
-                    Export Rules
-                </span>
-            </button>
-            <button id="btn-export-mappings" type="button" name="btn-export-mappings" class="btn btn-primary mr-sm-2">
-                <span>
-                    <i class="fas fa-share"></i>
-                    Export Mappings
-                </span>
-            </button>
-            <button id="btn-save-excel-file" type="button" name="btn-save-excel-file" class="btn btn-primary mr-sm-2">
-                <span>
-                    <i class="fas fa-file-download"></i>
-                    Save Excel File...
-                </span>
-            </button>
-        </form>
-        <span class="navbar-text"></span>
-    </nav>
+    <div id="app">
+        <app-header
+            @file-selected="readExcelFile"
+            @pipeline="pipeline"
+            @process="process"
+            :info="fileInfo">
+        </app-header>
 
-    <div class="container-fluid px-0">
-        <div id="excel"></div>
-    </div>
+        <p class="loading" v-if="isLoading">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
+        </p>
 
-    <div class="modal fade" id="pipelineModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="collectEmpIdModalLabel">Pipeline (Split Column into Two)</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="container">
-                        <form>
-                            <div class="form-group row">
-                                <label for="pipeline-excel-column-list" class="col-sm-3 col-form-label">Source Column</label>
-                                <div class="col-sm-6">
-                                    <select id="pipeline-excel-column-list" class="form-control"></select>
-                                </div>
-                            </div>
+        <column-rules-modal ref="columnRulesModalComponent"></column-rules-modal>
+        <collect-empid-modal></collect-empid-modal>
+        <pipeline-modal></pipeline-modal>
 
-                            <div class="form-group row">
-                                <div class="col-sm-3">
-
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="form-check">
-                                        <input type="checkbox" id="hide-original-column" name="hide-original-column" class="form-check-input">
-                                        <label for="hide-original-column" class="form-check-label">Hide Original Column</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Split Pattern (RegExp)</label>
-                                <div class="col-sm-6">
-                                    <input id="pipeline-split-chars" type="text" value="[,/]+" class="form-control">
-                                </div>
-                                <div class="col-sm-3">
-                                    <button id="pipeline-split-column" name="pipeline-split-column" type="button" class="btn btn-info btn-sm">
-                                        <span>
-                                            <i class="fas fa-bomb"></i>Split
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                        <div class="row justify-content-center">
-                            <div class="overflow-auto" style="max-height: 400px;">
-                                <table id="pipeline-results-table" class="table table-bordered table-hover table-sm">
-                                    <thead class="thead-light"></thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
+        <div v-if="showExcel" class="container-fluid px-0">
+            <table class="table table-bordered table-sm table-hover">
+                <thead class="thead-light">
+                    <th v-for="(column, index) of columns"
+                        :name="'cell-header ' + column"
+                        :id="'cell-header-id ' + column">{{column.title}}
+                        <div :id="'column-head-buttons-' + column">
+                            <button v-if="column.buttonText" type="button" class="btn btn-info" :name="'btn-col-rule ' + column.title" @click="showColumnRules(index)">
+                                {{column.buttonText}}
+                            </button>
                         </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="pipeline-save" name="pipeline-save">
-                        Save
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="close-modal-pipeline" name="close-modal-pipeline">
-                        Close
-                    </button>
-                </div>
-            </div>
+                    </th>
+                </thead>
+                <tbody>
+                    <tr v-for="row in processedRows">
+                        <td v-for="col in row">
+                            {{col}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-    </div>
 
-    <div class="modal fade" id="columnModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-xl" style="min-width: 95%;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="columnModalLabel"></h5>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-3">
-                            <div class="form-row">
-                                <div class="col-md-3">
-                                    <label for="db-table-values-list">DB Table</label>
-                                </div>
-                                <div class="col-md-5">
-                                    <select id="db-table-list" class="form-control form-control-sm"></select>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" id="set-excel-to-db-table-mapping" name="set-excel-to-db-table-mapping" class="btn btn-info btn-sm">
-                                            Set
-                                        </button>
-                                        <button type="button" id="del-excel-to-db-table-mapping" name="del-excel-to-db-table-mapping" class="btn btn-info btn-sm">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                        <button class="btn btn-info btn-sm" data-toggle="collapse" data-target="#collapseVisibleFields">
-                                            <i class="fas fa-filter"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="collapse" id="collapseVisibleFields">
-                                </div>
-                                <div class="overflow-auto" style="height: 500px;">
-                                    <table id="db-table-rows" class="table table-bordered table-hover table-sm">
-                                        <thead class="thead-light"></thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-1">
-                            <div class="form-group" style="text-align: center;">
-                                <label>DB Mapping</label>
-                                <div class="form-group" style="text-align: center;">
-                                    <select id="db-columns-list" class="form-control rule form-control-sm"></select>
-                                </div>
-                                <button id="btn-mapping-smart" name="btn-mapping-smart" class="btn btn-info btn-sm">
-                                    <span>
-                                        <i class="fas fa-bolt"></i>Smart
-                                    </span>
-                                </button>
-                                <button id="btn-mapping-smart-empid" name="btn-mapping-smart-empid" class="btn btn-info btn-sm" style="margin-top: 6px;">
-                                    <span>
-                                        <i class="fas fa-bolt"></i>Smart EmpId
-                                    </span>
-                                </button>
-                            </div>
-                            <div class="form-group" style="text-align: center;">
-                                <button id="btn-mapping-add" name="btn-mapping-add" class="btn btn-info btn-sm">
-                                    <span>
-                                        <i class="fas fa-link"></i>Map
-                                    </span>
-                                </button>
-                            </div>
-                            <div class="form-group" style="text-align: center;">
-                                <button id="btn-mapping-delete" name="btn-mapping-delete" class="btn btn-info btn-sm">
-                                    <span>
-                                        <i class="fas fa-trash-alt"></i>Delete
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="form-group">
-                                <label id="label-distinct-values" for="distinct-values-list">Distinct Values</label>
-                                <select id="distinct-values-list" class="form-control rule overflow-auto" size="20" multiple></select>
-                            </div>
-                        </div>
-                        <div class="col-1">
-                            <form>
-                                <div class="form-group">
-                                    <label>Rule</label>
-                                    <div class="form-group" style="text-align: center;">
-                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-create-smart" name="btn-rule-create-smart">
-                                            <span>
-                                                <i class="fas fa-bolt"></i>Smart
-                                            </span>
-                                        </button>
-                                    </div>
-
-                                    <div class="form-row">
-                                        <div class="col">
-                                            <label for="rule-from">From</label>
-                                        </div>
-                                        <div class="col">
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-from" name="btn-rule-add-from">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-from" name="btn-rule-delete-from">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-row">
-                                        <select id="rule-from" size="6" class="form-control form-control-sm" multiple></select>
-                                    </div>
-                                    &nbsp;
-                                    <div class="form-row">
-                                        <div class="col">
-                                            <label for="rule-to">To</label>
-                                        </div>
-                                        <div class="col">
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-to" name="btn-rule-add-to">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-add-db-to" name="btn-rule-add-db-to">
-                                                    <i class="fas fa-database"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete-to" name="btn-rule-delete-to">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-row">
-                                        <input id="rule-to" class="form-control form-control-sm" type="text">
-                                    </div>
-                                    &nbsp;
-                                    <div class="form-group">
-                                        <button type="button" class="btn btn-info btn-sm" id="btn-rule-create" name="btn-rule-create">
-                                            <span>
-                                                <i class="fas fa-gavel"></i>Create Rule
-                                            </span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-group">
-                                <label for="existing-rules-list">Normalization Rules</label>
-                                <select id="existing-rules-list" class="form-control rule overflow-auto" size="20" multiple></select>
-                                <button type="button" class="btn btn-info btn-sm" id="btn-rule-delete" name="btn-rule-delete" style="margin-top: 6px;">
-                                    <span>
-                                        <i class="fas fa-trash-alt"></i>Delete Selected Rules
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="export-db-mapping" name="export-db-mapping">
-                        <span>
-                            <i class="fas fa-file-export"></i>
-                            Export DB Mapping
-                        </span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="export-normalization" name="export-normalization">
-                        <span>
-                            <i class="fas fa-file-export"></i>
-                            Export Normalization
-                        </span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="btn-re-process" name="btn-re-process">
-                        <span>
-                            <i class="fas fa-microchip"></i>
-                            Re-Process
-                        </span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="close-modal" name="close-modal">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="collectEmpIdModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="collectEmpIdModalLabel">Fetch Emplyee Ids</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="container">
-                        <div class="row">
-                            Select Column:
-                            <select id="column-list" class="form-control"></select>
-                        </div>
-                        <div class="row">
-                            Column Values:
-                            <select id="column-values" size="20" class="form-control mr-sm-2"></select>
-                        </div>
-                        <div class="row" style="margin-top: 10px;">
-                            <div class="col-4">
-                                <button type="button" class="btn btn-info btn-sm" id="begin-getting-emp-ids" name="begin-getting-emp-ids">
-                                    <span>
-                                        <i class="fas fa-play"></i>
-                                        Begin Getting Employee Ids
-                                    </span>
-                                </button>
-                            </div>
-                            <div class="col-8">
-                                <input type="text" id="txt-api-key" class="form-control mr-sm-2" placeholder="api key">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="export-to-excel-empids" name="export-to-excel-empids">
-                        <span>
-                            <i class="fas fa-file-download"></i>
-                            Export To Excel
-                        </span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="close-modal-empid" name="close-modal-empid">Close</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="src/utils.js"></script>
@@ -372,6 +69,7 @@
     <script src="src/modals/column-rules.js"></script>
     <script src="src/modals/collect-empid.js"></script>
     <script src="src/modals/pipeline.js"></script>
+    <script src="src/header.js"></script>
     <script src="src/index.js"></script>
 
 </body>

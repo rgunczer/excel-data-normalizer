@@ -1,29 +1,17 @@
 'use strict';
 
-function Processor(excelRows, rules) {
+function Processor(columns, excelRows, rules) {
 
-    const columnNames = getColumnNames(excelRows);
     const processedRows = [];
-    const tableBody = document.getElementsByTagName('table')[0].getElementsByTagName('tbody')[0];
 
     function createColumnStatButtons() {
-        for (let i = 0; i < columnNames.length; ++i) {
-            const colName = columnNames[i];
-            const vals = getDistinctValuesInColumn(colName, columnNames, processedRows);
 
-            const colButtonsContainer = document.getElementById(`column-head-buttons-${colName}`);
-            if (colButtonsContainer) {
-                colButtonsContainer.innerHTML = '';
+        for (let i = 0; i < columns.length; ++i) {
+            const colName = columns[i].title;
+            const vals = getDistinctValuesInColumn(colName, columns.map(x => x.title), processedRows);
+            const rulesForCol = rules[colName];
 
-                const button = document.createElement('button');
-                button.className = 'btn btn-info';
-                button.name = 'btn-col-rule ' + colName;
-                const rulesForCol = rules[colName];
-                const t = document.createTextNode(`${vals.length} / ${rulesForCol ? rulesForCol.length : 0}`);
-                button.appendChild(t);
-
-                colButtonsContainer.appendChild(button);
-            }
+            columns[i].buttonText = `${vals.length} / ${rulesForCol ? rulesForCol.length : 0}`;
         }
     }
 
@@ -31,18 +19,18 @@ function Processor(excelRows, rules) {
         const arr = [];
         processedRows.push(arr);
 
-        const row = tableBody.insertRow(-1);
+        // const row = tableBody.insertRow(-1);
 
-        let cell = row.insertCell(-1);
-        cell.innerHTML = `${rowIndex + 1}.`;
+        // let cell = row.insertCell(-1);
+        // cell.innerHTML = `${rowIndex + 1}.`;
 
         for (let i = 0; i < cells.length; ++i) {
-            cell = row.insertCell(-1);
+            // cell = row.insertCell(-1);
             let cellValue = (cells[i] instanceof Date) ? formatDate(cells[i]) : cells[i];
 
             cellValue = (typeof cellValue === 'undefined') ? '' : cellValue;
 
-            const colName = columnNames[i];
+            const colName = columns[i].title;
             const ruleArr = rules[colName];
 
             if (ruleArr) {
@@ -56,7 +44,7 @@ function Processor(excelRows, rules) {
             }
 
             arr.push(cellValue);
-            cell.innerHTML = cellValue;
+            // cell.innerHTML = cellValue;
         }
     }
 

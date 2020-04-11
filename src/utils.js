@@ -108,15 +108,15 @@ function getColumnNames(rows) {
             if (pipeline[colName]) {
                 const config = pipeline[colName];
                 if (!config['hide-original-column']) {
-                    columns.push(colName);
+                    columns.push({ title: colName });
                 }
                 config['new-column-names'].forEach(col => {
-                    columns.push(col);
+                    columns.push({ title: col });
                 })
                 continue;
             }
         }
-        columns.push(colName.trim());
+        columns.push({ title: colName.trim() });
     }
     return columns;
 }

@@ -1,39 +1,110 @@
 'use strict';
 
-const pipelineModal = (function () {
+Vue.component('pipeline-modal', {
 
-    let columnNameToEdit = '';
-    let sourceColumnValues = [];
-    const resultColumn = {
-        names: ['original column name', 'column-a', 'column-b'],
-        values: []
-    };
+    template: `
+<div class="modal fade" id="pipelineModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="collectEmpIdModalLabel">Pipeline (Split Column into Two)</h5>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <form>
+                        <div class="form-group row">
+                            <label for="pipeline-excel-column-list" class="col-sm-3 col-form-label">Source Column</label>
+                            <div class="col-sm-6">
+                                <select id="pipeline-excel-column-list" class="form-control"></select>
+                            </div>
+                        </div>
 
-    $("#pipeline-excel-column-list").change(function () {
-        columnNameToEdit = '';
-        $("#pipeline-excel-column-list option:selected").each(function () {
-            columnNameToEdit += $(this).text();
-        });
+                        <div class="form-group row">
+                            <div class="col-sm-3">
 
-        console.log('pipelineModal->change ', columnNameToEdit);
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-check">
+                                    <input type="checkbox" id="hide-original-column" name="hide-original-column" class="form-check-input">
+                                    <label for="hide-original-column" class="form-check-label">Hide Original Column</label>
+                                </div>
+                            </div>
+                        </div>
 
-        resultColumn.names[0] = columnNameToEdit;
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Split Pattern (RegExp)</label>
+                            <div class="col-sm-6">
+                                <input id="pipeline-split-chars" type="text" value="[,/]+" class="form-control">
+                            </div>
+                            <div class="col-sm-3">
+                                <button id="pipeline-split-column" name="pipeline-split-column" type="button" class="btn btn-info btn-sm">
+                                    <span>
+                                        <i class="fas fa-bomb"></i>Split
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row justify-content-center">
+                        <div class="overflow-auto" style="max-height: 400px;">
+                            <table id="pipeline-results-table" class="table table-bordered table-hover table-sm">
+                                <thead class="thead-light"></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="pipeline-save" name="pipeline-save">
+                    Save
+                </button>
+                <button type="button" class="btn btn-secondary" id="close-modal-pipeline" name="close-modal-pipeline">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    `,
+    data() {
+        return {
+            columnNameToEdit: '',
+            sourceColumnValues: [],
+            resultColumn: {
+                names: ['original column name', 'column-a', 'column-b'],
+                values: []
+            }
+        };
+    },
+    methods: {
 
-        const columnNames = getOriginalColumnNames(originalRows);
-        sourceColumnValues = getDistinctValuesInColumn(columnNameToEdit, columnNames, originalRows)
-            .map(x => x.value);
 
-        resultColumn.values = [];
+    // $("#pipeline-excel-column-list").change(function () {
+    //     columnNameToEdit = '';
+    //     $("#pipeline-excel-column-list option:selected").each(function () {
+    //         columnNameToEdit += $(this).text();
+    //     });
 
-        sourceColumnValues.forEach(val => {
-            resultColumn.values.push([val, '-', '-']);
-        });
+    //     console.log('pipelineModal->change ', columnNameToEdit);
 
-        renderTable();
-        renderTableRows();
-    });
+    //     resultColumn.names[0] = columnNameToEdit;
 
-    function save() {
+    //     const columnNames = getOriginalColumnNames(originalRows);
+    //     sourceColumnValues = getDistinctValuesInColumn(columnNameToEdit, columnNames, originalRows)
+    //         .map(x => x.value);
+
+    //     resultColumn.values = [];
+
+    //     sourceColumnValues.forEach(val => {
+    //         resultColumn.values.push([val, '-', '-']);
+    //     });
+
+    //     renderTable();
+    //     renderTableRows();
+    // });
+
+    save() {
         const obj = {};
         obj[columnNameToEdit] = {
             "split-regexp": $('#pipeline-split-chars').val(),
@@ -44,9 +115,8 @@ const pipelineModal = (function () {
             ]
         }
         localStorage.setItem('pipeline', JSON.stringify(obj));
-    }
-
-    function renderTable() {
+    },
+    renderTable() {
         const filterTextBoxIds = [];
         const headHtml = '<tr>' + resultColumn.names.map(x => {
             const txtId = `pipe-col-name-${x}`;
@@ -55,35 +125,30 @@ const pipelineModal = (function () {
         }).join('') + '</tr>';
 
         $('#pipeline-results-table thead').html(headHtml);
-    }
-
-    function renderTableRows() {
+    },
+    renderTableRows() {
         let bodyHtml = '';
         resultColumn.values.forEach(row => {
             const arr = row.map(x => `<td>${x}</td>`);
             bodyHtml += `<tr>` + arr.join('') + '</tr>';
         });
         $('#pipeline-results-table tbody').html(bodyHtml);
-    }
-
-    function init() {
+    },
+    init() {
         const columnNames = getOriginalColumnNames(originalRows);
         ui.emptyOptions('pipeline-excel-column-list');
         columnNames.forEach(name => {
             $('#pipeline-excel-column-list').append(`<option value="${name}">${name}</option>`);
         });
-    }
-
-    function show() {
+    },
+    show() {
         init();
         $('#pipelineModal').modal('show');
-    }
-
-    function hide() {
+    },
+    hide() {
         $('#pipelineModal').modal('hide');
-    }
-
-    function handle(event) {
+    },
+    handle(event) {
         console.log('pipelineModal->handle ', event);
         let targetName = event.target.name;
 
@@ -118,10 +183,5 @@ const pipelineModal = (function () {
                 break;
         }
     }
-
-    return {
-        show,
-        hide,
-        handle
-    };
-})();
+    }
+});

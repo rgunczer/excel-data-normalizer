@@ -6,9 +6,9 @@ const ui = (function () {
         document.getElementsByClassName('navbar-text')[0].innerHTML = info;
     }
 
-    function showLoading() {
-        $('#excel').html('<p class="loading"><i class="fas fa-spinner fa-spin"></i>Loading...</p>');
-    }
+    // function showLoading() {
+    //     $('#excel').html('<p class="loading"><i class="fas fa-spinner fa-spin"></i>Loading...</p>');
+    // }
 
     function emptyOptions(elementId) {
         const el =document.getElementById(elementId);
@@ -17,44 +17,44 @@ const ui = (function () {
         }
     }
 
-    function setWorking(working) {
-        const icon = document.getElementById('processing-icon');
-        if (working) {
-            icon.classList.add('fa-spin');
-        } else {
-            icon.classList.remove('fa-spin');
-        }
-    }
+    // function setWorking(working) {
+    //     const icon = document.getElementById('processing-icon');
+    //     if (working) {
+    //         icon.classList.add('fa-spin');
+    //     } else {
+    //         icon.classList.remove('fa-spin');
+    //     }
+    // }
 
-    function createTableAndHeaders(columns) {
-        const tableEl = document.createElement('table');
-        tableEl.className = "table table-bordered table-sm table-hover";
+    // function createTableAndHeaders(columns) {
+    //     const tableEl = document.createElement('table');
+    //     tableEl.className = "table table-bordered table-sm table-hover";
 
-        // header
-        const tableHeadEl = tableEl.createTHead();
-        tableHeadEl.className = 'thead-light';
+    //     // header
+    //     const tableHeadEl = tableEl.createTHead();
+    //     tableHeadEl.className = 'thead-light';
 
-        const row = tableHeadEl.insertRow(-1);
-        let headerCell = document.createElement('th');
-        headerCell.innerHTML = '1.';
-        headerCell.style.textAlign = 'left';
-        row.appendChild(headerCell);
+    //     const row = tableHeadEl.insertRow(-1);
+    //     let headerCell = document.createElement('th');
+    //     headerCell.innerHTML = '1.';
+    //     headerCell.style.textAlign = 'left';
+    //     row.appendChild(headerCell);
 
-        columns.forEach(col => {
-            headerCell = document.createElement('th');
-            headerCell.name = 'cell-header ' + col;
-            headerCell.id = 'cell-header-id ' + col;
-            headerCell.innerHTML = `${col}<div id="column-head-buttons-${col}"></div>`;
-            row.appendChild(headerCell);
-        });
+    //     columns.forEach(col => {
+    //         headerCell = document.createElement('th');
+    //         headerCell.name = 'cell-header ' + col;
+    //         headerCell.id = 'cell-header-id ' + col;
+    //         headerCell.innerHTML = `${col}<div id="column-head-buttons-${col}"></div>`;
+    //         row.appendChild(headerCell);
+    //     });
 
-        const tbdy = document.createElement('tbody');
-        tableEl.appendChild(tbdy);
+    //     const tbdy = document.createElement('tbody');
+    //     tableEl.appendChild(tbdy);
 
-        const excelEl = document.getElementById("excel");
-        excelEl.innerHTML = '';
-        excelEl.appendChild(tableEl);
-    }
+    //     const excelEl = document.getElementById("excel");
+    //     excelEl.innerHTML = '';
+    //     excelEl.appendChild(tableEl);
+    // }
 
     function emptyTextBox(txtBoxId) {
         $(`#${txtBoxId}`).val('');
@@ -77,11 +77,11 @@ const ui = (function () {
 
     return {
         displayFileInfo,
-        showLoading,
+        // showLoading,
         emptyOptions,
         emptyTextBox,
-        setWorking,
-        createTableAndHeaders,
+        // setWorking,
+        // createTableAndHeaders,
         fillSelectionValueAndText,
         getSelectedOptionListValues
     };
